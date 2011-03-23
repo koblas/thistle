@@ -13,11 +13,17 @@ class Lexer {
 
     private static Pattern tag_re = null;
 
+    static String escape_re(String s) {
+        return s.replace("{", "\\{").replace("}","\\}");
+    }
+
     static {
         tag_re = Pattern.compile("("
-                                 + BLOCK_TAG_START + ".*?" + BLOCK_TAG_END
-                                 + VARIABLE_TAG_START + ".*?" + VARIABLE_TAG_END
-                                 + COMMENT_TAG_START + ".*?" + COMMENT_TAG_END
+                                 + escape_re(BLOCK_TAG_START) + ".*?" + escape_re(BLOCK_TAG_END)
+                                 + "|"
+                                 + escape_re(VARIABLE_TAG_START) + ".*?" + escape_re(VARIABLE_TAG_END)
+                                 + "|"
+                                 + escape_re(COMMENT_TAG_START) + ".*?" + escape_re(COMMENT_TAG_END)
                                  + ")");
     }
 

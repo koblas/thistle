@@ -4,9 +4,18 @@ import java.lang.String;
 import java.util.regex.Pattern;
 
 public class Token {
-    private static Pattern SPLIT_RE = Pattern.compile("([^\\s\"]*\"(?:[^\"\\\\]*(?:\\\\.[^\"\\]*)*)\"\\S*|[^\\s']*'(?:[^'\\\\]*(?:\\\\.[^'\\\\]*)*)'\\S*|\\S+)");
+    // PYTHON VERSION var RE = /([^\s"]*"(?:[^"\\]*(?:\\.[^"\\]*)*)"\S*|[^\s']*'(?:[^'\\]*(?:\\.[^'\\]*)*)'\S*|\S+)/;
 
-    public enum Type {
+    // private static Pattern SPLIT_RE = Pattern.compile("([^\\s\"]*\"(?:[^\"\\\\]*(?:\\\\.[^\"\\]*)*)\"\\S*|[^\\s']*'(?:[^'\\\\]*(?:\\\\.[^'\\\\]*)*)'\\S*|\\S+)");
+    private static Pattern SPLIT_RE = Pattern.compile("([^\\s\"]*\""
+                                                     +"(?:[^\"\\\\]*"
+                                                       +"(?:\\\\.[^\"\\\\]*)"
+                                                     +"*)\"\\S*|[^\\s']*'"
+                                                     +"(?:[^'\\\\]*"
+                                                       +"(?:\\\\.[^'\\\\]*)"
+                                                     +"*)'\\S*|\\S+)");
+
+    enum Type {
         TOKEN_TEXT,
         TOKEN_VAR,
         TOKEN_BLOCK,

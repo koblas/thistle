@@ -1,4 +1,4 @@
-JSRC = Test.java
+JSRC = Test.java Lexer.java Token.java
 
 JOBJ = $(JSRC:%.java=%.class)
 

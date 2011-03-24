@@ -54,16 +54,16 @@ class Lexer {
 
     private Token create_token(String token_string, Boolean in_tag) {
         if (in_tag) {
-            if (token_string.substring(0, VARIABLE_TAG_START.length()) == VARIABLE_TAG_START) {
+            if (token_string.startsWith(VARIABLE_TAG_START)) {
                 // sys.puts("VARIABLE .... " + token_string);
                 return new Token(Token.Type.TOKEN_VAR, token_string.substring(VARIABLE_TAG_START.length(),
                                                   token_string.length() - VARIABLE_TAG_START.length() - VARIABLE_TAG_END.length()).trim());
             }
-            if (token_string.substring(0, BLOCK_TAG_START.length()) == BLOCK_TAG_START) {
+            if (token_string.startsWith(BLOCK_TAG_START)) {
                 return new Token(Token.Type.TOKEN_BLOCK, token_string.substring(BLOCK_TAG_START.length(),
                                                   token_string.length() -  BLOCK_TAG_START.length() - BLOCK_TAG_END.length()).trim());
             }
-            if (token_string.substring(0, COMMENT_TAG_START.length()) == COMMENT_TAG_START) {
+            if (token_string.startsWith(COMMENT_TAG_START)) {
                 return new Token(Token.Type.TOKEN_COMMENT, "");
             }
         } else {

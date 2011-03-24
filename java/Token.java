@@ -22,9 +22,9 @@ public class Token {
         TOKEN_COMMENT,
     };
 
-    private Type type;
-    private String contents;
-    private int    lineno = -1;
+    private Type    type;
+    public String   contents;
+    private int     lineno = -1;
 
 
     public Token(Type token_type, String token_contents) {
@@ -69,5 +69,9 @@ public class Token {
         }
 
         return split;
+    }
+
+    public boolean empty() {
+        return contents == null || contents.length() == 0; 
     }
 }

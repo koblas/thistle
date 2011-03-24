@@ -1,4 +1,4 @@
-JSRC = Test.java Lexer.java Token.java Thistle.java  Parser.java
+JSRC = Test.java Lexer.java Token.java Thistle.java  Parser.java Node.java NodeList.java TextNode.java VariableNode.java
 
 JOBJ = $(JSRC:%.java=%.class)
 

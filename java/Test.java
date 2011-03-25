@@ -19,8 +19,12 @@ class Test {
                 while ((nchar = reader.read(buf, 0, buf.length)) > 0) 
                     builder.append(buf, 0, nchar);
 
-                Thistle thistle = new Thistle(builder.toString());
-                System.out.print(thistle.render());
+                try {
+                    Thistle thistle = new Thistle(builder.toString());
+                    System.out.print(thistle.render(new Context()));
+                } catch (TemplateSyntaxError e) {
+                    System.out.print("EXCEPTION: " + e);
+                }
             } catch (java.io.IOException e) {
             } finally {
                 try {

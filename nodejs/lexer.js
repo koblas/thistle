@@ -28,6 +28,7 @@ Lexer.prototype = {
 
         for (var idx = 0; idx < parts.length; idx++) {
             var bit = parts[idx];
+            // sys.puts("BIT = '" + bit + "'");
             if (bit.length != 0) 
                 result.push(this.create_token(bit, in_tag));
             in_tag = !in_tag;

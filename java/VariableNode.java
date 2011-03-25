@@ -1,8 +1,8 @@
 
 class VariableNode extends Node {
-    String  filter_expression;
+    FilterExpression  filter_expression;
 
-    public VariableNode(String filter_expression) {
+    public VariableNode(FilterExpression filter_expression) {
         this.filter_expression = filter_expression;
         must_be_first = false;
     }
@@ -12,11 +12,10 @@ class VariableNode extends Node {
     }
 
     public String render(Context c) {
-        /*
-        var output = this.filter_expression.resolve(context);
+        Object  o = filter_expression.resolve(c);
 
-        return in_context(output, context);
-        */
-        return "TODO_VARIABLE_RENDER";
+        if (c.autoescape && o instanceof String)
+            return Util.escape((String)o);
+        return (String)o;
     }
 }

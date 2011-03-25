@@ -1,4 +1,5 @@
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.LinkedList;
 import java.util.List;
 import java.lang.String;
@@ -13,18 +14,14 @@ class Lexer {
 
     private static Pattern tag_re = null;
 
-    static String escape_re(String s) {
-        return s.replace("{", "\\{").replace("}","\\}");
-    }
-
     static {
         tag_re = Pattern.compile("("
-                                 + escape_re(BLOCK_TAG_START) + ".*?" + escape_re(BLOCK_TAG_END)
-                                 + "|"
-                                 + escape_re(VARIABLE_TAG_START) + ".*?" + escape_re(VARIABLE_TAG_END)
-                                 + "|"
-                                 + escape_re(COMMENT_TAG_START) + ".*?" + escape_re(COMMENT_TAG_END)
-                                 + ")");
+                                  + Pattern.quote(BLOCK_TAG_START) + ".*?" + Pattern.quote(BLOCK_TAG_END)
+                               + "|"
+                                  + Pattern.quote(VARIABLE_TAG_START) + ".*?" + Pattern.quote(VARIABLE_TAG_END)
+                               + "|"
+                                 + Pattern.quote(COMMENT_TAG_START) + ".*?" + Pattern.quote(COMMENT_TAG_END)
+                               + ")");
     }
 
     private String template_string;
@@ -42,12 +39,24 @@ class Lexer {
 
         List<Token> result = new LinkedList<Token>();
 
-        for (String bit : tag_re.split(template_string)) {
-            if (bit != null) {
-                result.add(create_token(bit, in_tag));
-                in_tag = !in_tag;
-            }
+        Matcher matcher = tag_re.matcher(template_string);
+
+        int     sidx = 0;
+        while (matcher.find()) {
+            /*
+            System.out.println("SIDX  = " + sidx);
+            System.out.println("START = " + matcher.start());
+            System.out.println("GROUP = " + matcher.group());
+            System.out.println("END   = " + matcher.end());
+            */
+
+            if (matcher.start() != sidx)
+                result.add(create_token(template_string.substring(sidx, matcher.start()), false));
+            result.add(create_token(matcher.group(), true));
+            sidx = matcher.end();
         }
+        if (sidx != template_string.length())
+            result.add(create_token(template_string.substring(sidx), false));
 
         return result;
     }
@@ -57,11 +66,11 @@ class Lexer {
             if (token_string.startsWith(VARIABLE_TAG_START)) {
                 // sys.puts("VARIABLE .... " + token_string);
                 return new Token(Token.Type.TOKEN_VAR, token_string.substring(VARIABLE_TAG_START.length(),
-                                                  token_string.length() - VARIABLE_TAG_START.length() - VARIABLE_TAG_END.length()).trim());
+                                                  token_string.length() - VARIABLE_TAG_END.length()).trim());
             }
             if (token_string.startsWith(BLOCK_TAG_START)) {
                 return new Token(Token.Type.TOKEN_BLOCK, token_string.substring(BLOCK_TAG_START.length(),
-                                                  token_string.length() -  BLOCK_TAG_START.length() - BLOCK_TAG_END.length()).trim());
+                                                  token_string.length() -  BLOCK_TAG_END.length()).trim());
             }
             if (token_string.startsWith(COMMENT_TAG_START)) {
                 return new Token(Token.Type.TOKEN_COMMENT, "");

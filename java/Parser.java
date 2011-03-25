@@ -1,121 +1,141 @@
+import java.util.LinkedList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Parser {
     private List<Token> tokens;
+    private List<String>    parse_until;
+    private HashMap<String, TagHandler> tags;
+    private HashMap<String, FilterHandler> filters;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
 
-        // tags = new Map<String, TagHandler>();
-        // filters = new Map<String, FilterHandler>();
+        tags = new HashMap<String, TagHandler>();
+        filters = new HashMap<String, FilterHandler>();
 
         // TODO add built in libraries
     }
 
-    public parse() {
+    public NodeList parse() throws TemplateSyntaxError {
         return parse(null);
     }
 
-    public parse(String[] parse_until) {
-        if (parse_until == null)
-            parse_until = new String[0];
+    public NodeList parse(List<String> _parse_until) throws TemplateSyntaxError {
+        if (_parse_until == null)
+            parse_until = new LinkedList<String>();
 
         NodeList    nodelist = create_nodelist();
 
-        while (tokens.hasNext()) {
-            token = tokens.next();
+        // for (Token t : tokens) System.out.println(t);
+
+        while (!tokens.isEmpty()) {
+            Token token = next_token();
 
             if (token.type == Token.Type.TOKEN_TEXT) {
-                extend_nodelist(nodelist, TextNode(token.contents), token);
+                extend_nodelist(nodelist, new TextNode(token.contents), token);
             } else if (token.type == Token.Type.TOKEN_VAR) {
                 if (token.empty()) 
-                    empty_variable(token)
+                    empty_variable(token);
 
-                VariableNode var_node = create_variable_node(compile_filter(token.contents))
+                VariableNode var_node = create_variable_node(compile_filter(token));
 
-                extend_nodelist(nodelist, var_node, token)
-            } else if (token.token_type == Token.Type.TOKEN_BLOCK) {
+                extend_nodelist(nodelist, var_node, token);
+            } else if (token.type == Token.Type.TOKEN_BLOCK) {
                 for (String s : parse_until) {
                     if (s.equals(token.contents)) {
                         // put token back on token list so calling code knows why it terminated
-                        prepend_token(token)
+                        prepend_token(token);
                     }
-                    return nodelist
+                    return nodelist;
                 }
 
-                try:
-                    command = token.contents.split()[0]
-                except IndexError:
-                    empty_block_tag(token)
+                String command = null;
+                try {
+                    command = token.contents.split(" ")[0];
+                } catch (Exception e) {
+                    empty_block_tag(token);
+                }
 
                 // execute callback function for this tag and append resulting node
-                enter_command(command, token)
-                try:
-                    compile_func = self.tags[command]
-                except KeyError:
-                    self.invalid_block_tag(token, command, parse_until)
-                try:
-                    compiled_result = compile_func(self, token)
-                except TemplateSyntaxError, e:
-                    if not self.compile_function_error(token, e):
-                        raise
+                enter_command(command, token);
 
-                extend_nodelist(nodelist, compiled_result, token)
-                exit_command()
+                if (!tags.containsKey(command))
+                    invalid_block_tag(token, command, parse_until);
+                TagHandler handler = tags.get(command);
+
+                Node    compiled_result = null;
+                try {
+                    compiled_result = handler.compile(token);
+                } catch (TemplateSyntaxError e) {
+                    if (compile_function_error(token, e))
+                        throw e;
+                }
+
+                extend_nodelist(nodelist, compiled_result, token);
+                exit_command();
             }
         }
 
-        if (parse_until.length() != 0) {
-            unclosed_block_tag(parse_until)
-        }
+        if (!parse_until.isEmpty()) 
+            unclosed_block_tag(parse_until);
 
         return nodelist;
     }
 
     private NodeList create_nodelist() {
-        return new NodeList()
+        return new NodeList();
     }
 
     private VariableNode create_variable_node(FilterExpression expr) {
-        return new VariableNode(expr)
+        return new VariableNode(expr);
     }
 
-    public void empty_variable(Token token) raises TemplateSyntaxError {
-        raise TemplateSyntaxError("Empty variable tag", token);
+    public void empty_block_tag(Token token) throws TemplateSyntaxError {
+        throw new TemplateSyntaxError("Empty block tag", token);
     }
 
-    public void empty_block_tag(Token token) raises TemplateSyntaxError {
-        raise TemplateSyntaxError("Empty block tag", token);
+    public void empty_variable(Token token) throws TemplateSyntaxError {
+        throw new TemplateSyntaxError("Empty variable tag", token);
     }
 
-    public void empty_variable(Token token) raises TemplateSyntaxError {
-        raise TemplateSyntaxError("Empty variable tag", token);
+    public void unclosed_block_tag(String tag) throws TemplateSyntaxError {
+        List<String>    l = new LinkedList<String>();
+        l.add(tag);
+        unclosed_block_tag(l);
     }
 
-    public void unclosed_block_tag(NodeList parse_until) raises TemplateSyntaxError {
-        raise TemplateSyntaxError(None, "Unclosed tags: %s " %  ', '.join(parse_until))
+    public void unclosed_block_tag(List<String> parse_until) throws TemplateSyntaxError {
+        StringBuffer    buf = new StringBuffer();
+        for (String s : parse_until) {
+            if (buf.length() != 0)
+                buf.append(", ");
+            buf.append(s);
+        }
+        throw new TemplateSyntaxError("Unclosed tags: " + buf.toString());
     }
 
-    private void extend_nodelist(NodeList nodelist, Node node, Token token) {
-        if (node.must_be_first and nodelist.length() != 0) {
+    private void extend_nodelist(NodeList nodelist, Node node, Token token) throws TemplateSyntaxError {
+        if (node.must_be_first && !nodelist.isEmpty()) {
             if (nodelist.contains_nontext) {
-                raise TemplateSyntaxError("%r must be the first tag in the template." % node)
+                throw new TemplateSyntaxError(node + " must be the first tag in the template.");
             }
         }
-        if (nodelist isinstance NodeList) 
+        if (nodelist instanceof NodeList) 
             nodelist.contains_nontext = true;
         nodelist.add(node);
     }
 
     private void prepend_token(Token token) {
-        tokens.insert(0, token)
+        tokens.add(0, token);
     }
 
     private Token next_token() {
-        return tokens.pop(0)
+        return tokens.remove(0);
     }
 
-    private void enter_command(command, Token token) {
+    private void enter_command(String command, Token token) {
         // Nothing
     }
 
@@ -129,39 +149,50 @@ public class Parser {
 
     private FilterExpression compile_filter(Token token) {
         // Convenient wrapper for FilterExpression
-        return FilterExpression(token, this)
+        return new FilterExpression(token.contents, this);
+    }
+
+    private void invalid_block_tag(Token token, String command, List<String> parse_until) throws TemplateSyntaxError {
+        if (parse_until != null && !parse_until.isEmpty()) {
+            StringBuffer    sbuf = new StringBuffer();
+
+            for (String s : parse_until) {
+                if (sbuf.length() != 0) 
+                    sbuf.append(", ");
+                sbuf.append("'");
+                sbuf.append(s);
+                sbuf.append("'");
+            }
+
+            throw new TemplateSyntaxError("Invalid block tag: '"+command+"', expected " + sbuf.toString());
+        }
+        throw new TemplateSyntaxError("Invalid block tag: '" + command +"'", token);
+    }
+
+    private void delete_first_token() {
+        tokens.remove(0);
+    }
+    
+    private void skip_past(String endtag) throws TemplateSyntaxError {
+        while (!tokens.isEmpty()) {
+            Token token = next_token();
+            if (token.type == Token.Type.TOKEN_BLOCK && endtag.equals(token.contents))
+                return;
+        }
+        unclosed_block_tag(endtag);
     }
 
 
 /*
-    def parse(self, parse_until=None):
-        if parse_until is None: parse_until = []
-
-        return nodelist
-
-    def skip_past(self, endtag):
-        while self.tokens:
-            token = self.next_token()
-            if token.token_type == TOKEN_BLOCK and token.contents == endtag:
-                return
-        self.unclosed_block_tag([endtag])
-
-    def invalid_block_tag(self, token, command, parse_until=None):
-        if parse_until:
-            raise self.error(token, "Invalid block tag: '%s', expected %s" % (command, get_text_list(["'%s'" % p for p in parse_until])))
-        raise self.error(token, "Invalid block tag: '%s'" % command)
-
-    def delete_first_token(self):
-        del self.tokens[0]
-
     def add_library(self, lib):
         self.tags.update(lib.tags)
         self.filters.update(lib.filters)
-
-    def find_filter(self, filter_name):
-        if filter_name in self.filters:
-            return self.filters[filter_name]
-        else:
-            raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
 */
+
+    public FilterHandler find_filer(String filter_name) throws TemplateSyntaxError {
+        FilterHandler f = filters.get(filter_name);
+        if (f == null)
+            throw new TemplateSyntaxError("Invalid filter: '" + filter_name + "'");
+        return f;
+    }
 }

@@ -22,7 +22,7 @@ public class Token {
         TOKEN_COMMENT,
     };
 
-    private Type    type;
+    protected Type    type;
     public String   contents;
     private int     lineno = -1;
 
@@ -36,7 +36,16 @@ public class Token {
         int maxl = contents.length();
         if (maxl > 20) 
             maxl = 20;
-        return "<" + type + " token: \"" + contents.substring(0,maxl).replaceAll("\n", " ") + "\"...>";
+
+        String  tstr = "UNDEF";
+        switch (type) {
+        case TOKEN_TEXT: tstr = "Text"; break;
+        case TOKEN_VAR: tstr = "Variable"; break;
+        case TOKEN_BLOCK: tstr = "Block"; break;
+        case TOKEN_COMMENT: tstr = "Comment"; break;
+        }
+
+        return "<" + tstr + " token: \"" + contents.substring(0,maxl).replaceAll("\n", " ") + "\"...>";
     }
 
     public List<String> split_contents() {

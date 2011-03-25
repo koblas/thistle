@@ -38,4 +38,12 @@ class NodeList extends Node {
 
         return nlist;
     }
+
+    public boolean isEmpty() {
+        return nodes.isEmpty();
+    }
+
+    public void add(Node node) {
+        nodes.add(node);
+    }
 }

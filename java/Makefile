@@ -5,9 +5,10 @@ JSRC = Test.java Lexer.java Token.java Thistle.java  Parser.java Node.java NodeL
 JOBJ = $(JSRC:%.java=%.class)
 
 thistle.jar : $(JOBJ)
+	jar cmf MANIFEST.MF thistle.jar $(JOBJ) 
 	#jar cmf MANIFEST.MF thistle.jar $(JOBJ) Token$$Type.class foo.bar
-	cp jregex1.2_01.jar thistle.jar
-	jar umf MANIFEST.MF thistle.jar *.class
+	#cp jregex1.2_01.jar thistle.jar
+	#jar umf MANIFEST.MF thistle.jar *.class
 
 .java.class:
 	#javac -cp .:jregex1.2_01.jar $<

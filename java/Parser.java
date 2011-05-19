@@ -147,7 +147,7 @@ public class Parser {
         return false;
     }
 
-    private FilterExpression compile_filter(Token token) {
+    private FilterExpression compile_filter(Token token) throws TemplateSyntaxError {
         // Convenient wrapper for FilterExpression
         return new FilterExpression(token.contents, this);
     }

@@ -4,18 +4,20 @@ var Token = require('./token');
 var Thistle = require('./thistle');
 var XRegExp = require('./xregexp');
 
-module.exports = Parser;
+function VariableDoesNotExist(message) { this.message = message; Error.apply(this, arguments); }
+VariableDoesNotExist.prototype = new Error();
+VariableDoesNotExist.prototype.constructor = VariableDoesNotExist;
+VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
-function ParseException(message) {
-    this.message = message;
-    this.name = "ParseException";
-}
+module.exports = Parser;
 
 function Parser(tokens) {
     this.tokens = tokens;
 
     this.tags = {};
-    this.filters = {};
+
+    // this.load_filters();
+    this.filters = require('./filters');
 };
 
 var _escapeRE = new RegExp('(\\' + ([ '/','.','*','+','?','|','(',')','[',']','{','}','\\' ].join('|\\')) + ')', 'g');
@@ -44,7 +46,7 @@ Parser.prototype = {
                 var var_node = this.create_variable_node(filter_expression);
                 this.extend_nodelist(nodelist, var_node, token);
             } else if (token.type == Token.TOKEN_BLOCK) {
-                sys.puts("DOING BLOCK");
+                //sys.puts("DOING BLOCK");
                 if (parse_until.some(function(x) { return x == token.contents; })) {
                     this.prepend_token(token);
                     return nodelist;
@@ -114,20 +116,20 @@ Parser.prototype = {
     enter_command : function(command, token) { },
     exit_command  : function(command, token) { },
 
-    empty_variable_tag : function(token) {
-        throw new ParseException("Empty variable tag");
+    empty_variable : function(token) {
+        throw new Thistle.ParseException("Empty variable tag");
     },
 
     empty_block_tag : function(token) {
-        throw new ParseException("Empty block tag");
+        throw new Thistle.ParseException("Empty block tag");
     },
 
     invalid_block_tag : function(token, command) {
-        throw new ParseException("Invalid block tag: " + command);
+        throw new Thistle.ParseException("Invalid block tag: " + command);
     },
 
     unclosed_block_tag : function(parse_until) {
-        throw new ParseException("Unclosed tag: " + parse_until.join(', '));
+        throw new Thistle.ParseException("Unclosed tag: " + parse_until.join(', '));
     },
 
     compile_function_error : function(token, e) {
@@ -147,11 +149,10 @@ Parser.prototype = {
     },
 
     find_filter : function(filter_name) {
-        try {
-            return this.filters[filter_name];
-        } catch (e) {
-            throw new ParseException("Invalid filter: '"+filter_name+'"');
-        }
+        var f = this.filters[filter_name];
+        if (f == undefined) 
+            throw new Thistle.ParseException("Invalid filter: '"+filter_name+'"');
+        return f;
     }
 };
 
@@ -264,6 +265,7 @@ function Variable(val) {
     this.lookups = null;
     this.translate = false;
 
+    // sys.puts("Creating variable: " + val);
     try {
         if (/^[+\-]?\d+$/.test(val)) {
             this.literal = parseInt(val);
@@ -281,6 +283,8 @@ function Variable(val) {
         if ((val.charAt(0) == '"' || val.charAt(0) == "'") && val.charAt(0) == val.charAt(val.length-1)) {
             this.literal = val.substr(1, val.length - 2).replace('\\\\', '\\');
         } else {
+            if (val.indexOf(Thistle.VARIABLE_ATTRIBUTE_SEPARATOR + "_") != -1 || val == "_") 
+                throw new Thistle.ParseException("Variables and attributes may not begin with underscores: " + val);
             this.lookups = val.split(Thistle.VARIABLE_ATTRIBUTE_SEPARATOR);
         }
     }
@@ -293,7 +297,13 @@ extend(Variable, Object, {
     resolve: function(context) {
         // sys.puts("DOING RESOLVE");
         if (this.lookups) {
-            value = this._resolve_lookup(context);
+            try {
+                value = this._resolve_lookup(context);
+            } catch (e) {
+                if (e instanceof VariableDoesNotExist) {
+                    value = Thistle.TEMPLATE_STRING_IF_INVALID;
+                }
+            }
         } else {
             value = this.literal;
         }
@@ -314,9 +324,15 @@ extend(Variable, Object, {
 
         for (var idx in this.lookups) {
             var bit = this.lookups[idx];
-            // sys.puts("bit = " + bit);
-            var bval = current[bit];
-            // sys.puts("LOOKUP " + bval);
+            var bval;
+
+            try {
+                bval = current[bit];
+            } catch(e) {
+                throw new VariableDoesNotExist();
+            }
+
+            //sys.puts("_resolve_lookup: lookups: ["+ this.lookups + "] bit=" + bit + " typeof(bval) = " + typeof(bval) + " current:" + current);
                 
             var tval = typeof(bval);
             if (tval == 'undefined') {
@@ -343,16 +359,22 @@ function FilterExpression(token, parser) {
     var val_obj = null;
     var upto    = 0;
     var self    = this;
+    var start   = 0;
 
     XRegExp.iterate(token, this.filter_re, function(match) {
-        //sys.puts('m[] ('+match.val+')= ' + match);
+        // sys.puts('m[] ('+match.val+')= ' + match);
+        // for (var k in match) sys.puts(k + ': ' + match[k]);
+
+        if (upto != match.index)
+            throw new Thistle.ParseException("Could not parse some characters: "+token.substr(0,upto)+"|"+token.substr(upto, start)+"|" + token.substr(start));
+        upto = match['index'] + match[0].length;
 
         if (val_obj == null) {
             if (match.constant) {
                 //sys.puts("GOT CONSTNAT " +  match.constant);
                 val_obj = new Variable(match.constant).resolve({});
             } else if (match.val) {
-                //sys.puts("GOT VALUE = " + match.val);
+                // sys.puts("GOT VALUE = " + match.val);
                 val_obj = new Variable(match.val);
             } else {
                 // TODO error
@@ -368,7 +390,7 @@ function FilterExpression(token, parser) {
             } else if (val_arg) {
                 args.push([true, new Variable(val_arg)]);
             }
-            //sys.puts("HERE");
+            // sys.puts("HERE");
             var filter_func = parser.find_filter(filter_name);
             self.args_check(filter_name, filter_func, args);
             filters.push({func:filter_func, args:args});
@@ -376,17 +398,28 @@ function FilterExpression(token, parser) {
     });
 
     // sys.puts("VALU = " + val_obj);
+    // sys.puts("FILTERS = " + filters);
+    // for (var i in filters) { sys.puts("FILTER["+i+"] = " + filters[i].func); }
+    
+    if (upto != token.length) {
+        throw new Thistle.ParseException("Could not parse the remainder: '"+token.substr(upto)+"' from '"+token+"'");
+    }
 
-    this.fillters = filters;
-    this.val      = val_obj;
+    this.filters = filters;
+    this.val     = val_obj;
 }
 
 extend(FilterExpression, Object, {
     filter_re : function() {
+        function strit(r) {
+            r = r.toString();
+            return r.substring(1, r.length - 1);
+        }
+
         var constant_string = '(?:%(i18n_open)s%(strdq)s%(i18n_close)s|%(i18n_open)s%(strsq)s%(i18n_close)s|%(strdq)s|%(strsq)s)';
 
-        constant_string = constant_string.replace(/%\(strdq\)s/g, /'"[^"\\]*(?:\\.[^"\\]*)*"/ + "")
-                                         .replace(/%\(strsq\)s/g, /'[^'\\]*(?:\\.[^'\\]*)*'/ + "")
+        constant_string = constant_string.replace(/%\(strdq\)s/g, strit(/"[^"\\]*(?:\\.[^"\\]*)*"/))
+                                         .replace(/%\(strsq\)s/g, strit(/'[^'\\]*(?:\\.[^'\\]*)*'/))
                                          .replace(/%\(i18n_open\)s/g, escapeRE('_('))
                                          .replace(/%\(i18n_close\)s/g, escapeRE(')'))
                         ;
@@ -433,7 +466,9 @@ extend(FilterExpression, Object, {
 
         if (this.val instanceof Variable) {
             obj = this.val.resolve(context);
-            // TODO doesn't exist
+            if (obj == undefined) {
+                obj = Thistle.TEMPLATE_STRING_IF_INVALID;
+            }
         } else {
             obj = this.val;
         }
@@ -442,7 +477,7 @@ extend(FilterExpression, Object, {
             var func = this.filters[idx].func;
             var args = this.filters[idx].args;
 
-            // TODO lookup
+            obj = func(obj, args);
         }
         return obj
     },

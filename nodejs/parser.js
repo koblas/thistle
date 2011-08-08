@@ -11,13 +11,15 @@ VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
 module.exports = Parser;
 
+var Filters = require('./filters');
+
 function Parser(tokens) {
     this.tokens = tokens;
 
     this.tags = {};
 
     // this.load_filters();
-    this.filters = require('./filters');
+    this.filters = Filters;
 };
 
 var _escapeRE = new RegExp('(\\' + ([ '/','.','*','+','?','|','(',')','[',']','{','}','\\' ].join('|\\')) + ')', 'g');
@@ -281,7 +283,7 @@ function Variable(val) {
             val = substr(2, val.length - 3);
         }
         if ((val.charAt(0) == '"' || val.charAt(0) == "'") && val.charAt(0) == val.charAt(val.length-1)) {
-            this.literal = val.substr(1, val.length - 2).replace('\\\\', '\\');
+            this.literal = val.substr(1, val.length - 2).replace('\\'+val.charAt(0), val.charAt(0)).replace('\\\\', '\\');
         } else {
             if (val.indexOf(Thistle.VARIABLE_ATTRIBUTE_SEPARATOR + "_") != -1 || val == "_") 
                 throw new Thistle.ParseException("Variables and attributes may not begin with underscores: " + val);
@@ -295,7 +297,7 @@ extend(Variable, Object, {
     },
 
     resolve: function(context) {
-        // sys.puts("DOING RESOLVE");
+        // sys.puts("DOING RESOLVE " + this.lookups + " : " + this.literal);
         if (this.lookups) {
             try {
                 value = this._resolve_lookup(context);
@@ -332,7 +334,7 @@ extend(Variable, Object, {
                 throw new VariableDoesNotExist();
             }
 
-            //sys.puts("_resolve_lookup: lookups: ["+ this.lookups + "] bit=" + bit + " typeof(bval) = " + typeof(bval) + " current:" + current);
+            // sys.puts("_resolve_lookup: lookups: ["+ this.lookups + "] bit=" + bit + " typeof(bval) = " + typeof(bval) + " current:" + current);
                 
             var tval = typeof(bval);
             if (tval == 'undefined') {
@@ -342,6 +344,7 @@ extend(Variable, Object, {
             } else {
                 current = bval;
             }
+            // sys.puts("   new value = " + current);
         }
 
         return current;
@@ -466,7 +469,7 @@ extend(FilterExpression, Object, {
 
         if (this.val instanceof Variable) {
             obj = this.val.resolve(context);
-            if (obj == undefined) {
+            if (obj === undefined) {
                 obj = Thistle.TEMPLATE_STRING_IF_INVALID;
             }
         } else {
@@ -477,7 +480,12 @@ extend(FilterExpression, Object, {
             var func = this.filters[idx].func;
             var args = this.filters[idx].args;
 
-            obj = func(obj, args);
+            var call_args = [];
+            for (var i in args) {
+                call_args.push(args[i][0] ? args[i][1].resolve(context) : args[i][1]);
+            }
+
+            obj = func.apply(this, [obj].concat(call_args));
         }
         return obj
     },

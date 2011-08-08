@@ -223,17 +223,16 @@ exports.testBasic = function(test) {
         'filter-syntax09': ['{{ var|removetags:"b i"|upper|lower }}', {"var": "<b><i>Yes</i></b>"}, "yes"],
         */
 
+        // Literal string as argument is always "safe" from auto-escaping..
+        'filter-syntax10': ['{{ var|default_if_none:" endquote\\" hah" }}', {"var": null}, ' endquote" hah'],
+
+        /// Variable as argument
+        'filter-syntax11': ['{{ var|default_if_none:var2 }}', {"var": null, "var2": "happy"}, 'happy'],
+
+        // Default argument testing
+        'filter-syntax12': ['{{ var|yesno:"yup,nup,mup" }} {{ var|yesno }}', {"var": true}, 'yup yes'],
+
 /*
-            # Literal string as argument is always "safe" from auto-escaping..
-            'filter-syntax10': (r'{{ var|default_if_none:" endquote\" hah" }}',
-                    {"var": None}, ' endquote" hah'),
-
-            # Variable as argument
-            'filter-syntax11': (r'{{ var|default_if_none:var2 }}', {"var": None, "var2": "happy"}, 'happy'),
-
-            # Default argument testing
-            'filter-syntax12': (r'{{ var|yesno:"yup,nup,mup" }} {{ var|yesno }}', {"var": True}, 'yup yes'),
-
             # Fail silently for methods that raise an exception with a
             # "silent_variable_failure" attribute
             'filter-syntax13': (r'1{{ var.method3 }}2', {"var": SomeClass()}, ("12", "1INVALID2")),
@@ -241,26 +240,30 @@ exports.testBasic = function(test) {
             # In methods that raise an exception without a
             # "silent_variable_attribute" set to True, the exception propagates
             'filter-syntax14': (r'1{{ var.method4 }}2', {"var": SomeClass()}, (SomeOtherException, SomeOtherException, template.TemplateSyntaxError)),
+*/
 
-            # Escaped backslash in argument
-            'filter-syntax15': (r'{{ var|default_if_none:"foo\bar" }}', {"var": None}, r'foo\bar'),
+        // Escaped backslash in argument
+        'filter-syntax15': ['{{ var|default_if_none:"foo\\bar" }}', {"var": null}, 'foo\\bar'],
 
-            # Escaped backslash using known escape char
-            'filter-syntax16': (r'{{ var|default_if_none:"foo\now" }}', {"var": None}, r'foo\now'),
+        // Escaped backslash using known escape char
+        'filter-syntax16': ['{{ var|default_if_none:"foo\\now" }}', {"var": null}, 'foo\\now'],
 
-            # Empty strings can be passed as arguments to filters
-            'filter-syntax17': (r'{{ var|join:"" }}', {'var': ['a', 'b', 'c']}, 'abc'),
+        // Empty strings can be passed as arguments to filters
+        'filter-syntax17': ['{{ var|join:"" }}', {'var': ['a', 'b', 'c']}, 'abc'],
 
+/*
             # Make sure that any unicode strings are converted to bytestrings
             # in the final output.
             'filter-syntax18': (r'{{ var }}', {'var': UTF8Class()}, u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111'),
+*/
 
-            # Numbers as filter arguments should work
-            'filter-syntax19': ('{{ var|truncatewords:1 }}', {"var": "hello world"}, "hello ..."),
+            // Numbers as filter arguments should work
+            'filter-syntax19': ['{{ var|truncatewords:1 }}', {"var": "hello world"}, "hello ..."],
 
-            #filters should accept empty string constants
-            'filter-syntax20': ('{{ ""|default_if_none:"was none" }}', {}, ""),
+            // filters should accept empty string constants
+            'filter-syntax20': ['{{ ""|default_if_none:"was none" }}', {}, ""],
 
+/*
             # Fail silently for non-callable attribute and dict lookups which
             # raise an exception with a "silent_variable_failure" attribute
             'filter-syntax21': (r'1{{ var.silent_fail_key }}2', {"var": SomeClass()}, ("12", "1INVALID2")),
@@ -271,7 +274,7 @@ exports.testBasic = function(test) {
             # propagates
             'filter-syntax23': (r'1{{ var.noisy_fail_key }}2', {"var": SomeClass()}, (SomeOtherException, SomeOtherException, template.TemplateSyntaxError)),
             'filter-syntax24': (r'1{{ var.noisy_fail_attribute }}2', {"var": SomeClass()}, (SomeOtherException, SomeOtherException, template.TemplateSyntaxError)),
-            */
+*/
 
             //## COMMENT SYNTAX ########################################################
             'comment-syntax01': ["{# this is hidden #}hello", {}, "hello"],
@@ -880,25 +883,23 @@ exports.testBasic = function(test) {
             'invalidstr06': ('{{ var.prop }}', {'var': {}}, ('', ('INVALID %s', 'var.prop'))),
 
             ### MULTILINE #############################################################
+            */
 
-            'multiline01': ("""
-                            Hello,
-                            boys.
-                            How
-                            are
-                            you
-                            gentlemen.
-                            """,
-                            {},
-                            """
-                            Hello,
-                            boys.
-                            How
-                            are
-                            you
-                            gentlemen.
-                            """),
+            'multiline01': ["Hello,\n"
+                           +"boys.\n"
+                           +"How\n"
+                           +"are\n"
+                           +"you\n"
+                           +"gentlemen.\n",
+                           {},
+                            "Hello,\n"
+                           +"boys.\n"
+                           +"How\n"
+                           +"are\n"
+                           +"you\n"
+                           +"gentlemen.\n"],
 
+            /*
             ### REGROUP TAG ###########################################################
             'regroup01': ('{% regroup data by bar as grouped %}' + \
                           '{% for group in grouped %}' + \
@@ -1177,7 +1178,7 @@ exports.testBasic = function(test) {
     };
 
     for (var tcase in tests) {
-        //if (tcase != 'xbasic-syntax06' && tcase != 'filter-syntax03') continue;
+        //if (tcase != 'filter-syntax10') continue;
 
         var tdata = tests[tcase];
 
@@ -1189,6 +1190,8 @@ exports.testBasic = function(test) {
                 var thistle = new Thistle(tdata[0]);
                 return thistle.render(tdata[1]);
             };
+
+            //sys.puts(func());
 
             if (tdata[2] == Thistle.ParseException || tdata[2] == Thistle.TemplateSyntaxError) {
                 test.throws(func, tdata[2], tcase);

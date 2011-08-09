@@ -27,9 +27,18 @@ Token.prototype = {
         var RE = /([^\s"]*"(?:[^"\\]*(?:\\.[^"\\]*)*)"\S*|[^\s']*'(?:[^'\\]*(?:\\.[^'\\]*)*)'\S*|\S+)/;
         var split = [];
 
-        sys.puts("TOKEN = '" + this.contents + "'");
+        // sys.puts("TOKEN = '" + this.contents + "'");
 
-        var parts = this.contents.split(RE);
+        var parts = this.contents.split(RE).filter(function (s) {
+            for (var i = 0; i < s.length; i++) {
+                if (s[i] != ' ') {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        // sys.puts("PARTS = [" + parts + "]");
 
         for (var i = 0; i < parts.length; i++) {
             var bit = parts[i];

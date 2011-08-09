@@ -9,17 +9,11 @@ VariableDoesNotExist.prototype = new Error();
 VariableDoesNotExist.prototype.constructor = VariableDoesNotExist;
 VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
-module.exports = Parser;
-
-var Filters = require('./filters');
-
 function Parser(tokens) {
     this.tokens = tokens;
 
-    this.tags = {};
-
-    // this.load_filters();
-    this.filters = Filters;
+    this.tags    = require('./default_tags');
+    this.filters = require('./filters');
 };
 
 var _escapeRE = new RegExp('(\\' + ([ '/','.','*','+','?','|','(',')','[',']','{','}','\\' ].join('|\\')) + ')', 'g');
@@ -33,9 +27,9 @@ Parser.prototype = {
 
         var nodelist = this.create_nodelist();
 
-        for (idx in this.tokens) {
-            //sys.puts("IDX = " + idx);
-            var token = this.tokens[idx];
+        while (this.tokens.length != 0) {
+            var token = this.next_token();
+            // sys.puts("TOKEN = ' + token);
             if (token.type == Token.TOKEN_TEXT) {
                 //sys.puts("DOING TEXT");
                 this.extend_nodelist(nodelist, new TextNode(token.contents), token);
@@ -93,6 +87,12 @@ Parser.prototype = {
     },
 
     skip_past : function(endtag) {
+        while (this.tokens.length != 0) {
+            token = this.next_token();
+            if (token.type == Token.TOKEN_BLOCK && token.contents == endtag)
+                return;
+        }
+        this.unclosed_block_tag(endtag);
     },
 
     create_variable_node : function(filter_expression) {
@@ -200,7 +200,7 @@ extend(NodeList, Array, {
         var t = this;
         var bits = this.map(function(node) {
             if (node instanceof Node) {
-                //sys.puts("NodeList context = " + context);
+                // sys.puts("NodeList context = " + context);
                 return t.render_node(node, context);
             } else {
                 return node;
@@ -293,11 +293,12 @@ function Variable(val) {
 }
 extend(Variable, Object, {
     toString : function() {
-        return this.val;
+        return "<Variable : " + this.val + ">";
     },
 
     resolve: function(context) {
         // sys.puts("DOING RESOLVE " + this.lookups + " : " + this.literal);
+        // sys.puts("CONTEXT = " + context.toString());
         if (this.lookups) {
             try {
                 value = this._resolve_lookup(context);
@@ -329,7 +330,11 @@ extend(Variable, Object, {
             var bval;
 
             try {
-                bval = current[bit];
+                if (idx == 0) {
+                    bval = current.get(bit);
+                } else {
+                    bval = current[bit];
+                }
             } catch(e) {
                 throw new VariableDoesNotExist();
             }
@@ -491,5 +496,14 @@ extend(FilterExpression, Object, {
     },
 
     args_check : function(name, provided) {
-    }
+    },
+
+    toString : function() {
+        return "<FilterExpression token=" + this.token + " val = " + this.val + " filters="+this.filters.length+">";
+    },
 });
+
+module.exports = {
+    Parser : Parser,
+    Node   : Node,
+};

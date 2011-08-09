@@ -276,59 +276,68 @@ exports.testBasic = function(test) {
             'filter-syntax24': (r'1{{ var.noisy_fail_attribute }}2', {"var": SomeClass()}, (SomeOtherException, SomeOtherException, template.TemplateSyntaxError)),
 */
 
-            //## COMMENT SYNTAX ########################################################
-            'comment-syntax01': ["{# this is hidden #}hello", {}, "hello"],
-            'comment-syntax02': ["{# this is hidden #}hello{# foo #}", {}, "hello"],
+        //## COMMENT SYNTAX ########################################################
+        'comment-syntax01': ["{# this is hidden #}hello", {}, "hello"],
+        'comment-syntax02': ["{# this is hidden #}hello{# foo #}", {}, "hello"],
 
-            // Comments can contain invalid stuff.
-            'comment-syntax03': ["foo{#  {% if %}  #}", {}, "foo"],
-            'comment-syntax04': ["foo{#  {% endblock %}  #}", {}, "foo"],
-            'comment-syntax05': ["foo{#  {% somerandomtag %}  #}", {}, "foo"],
-            'comment-syntax06': ["foo{# {% #}", {}, "foo"],
-            'comment-syntax07': ["foo{# %} #}", {}, "foo"],
-            'comment-syntax08': ["foo{# %} #}bar", {}, "foobar"],
-            'comment-syntax09': ["foo{# {{ #}", {}, "foo"],
-            'comment-syntax10': ["foo{# }} #}", {}, "foo"],
-            'comment-syntax11': ["foo{# { #}", {}, "foo"],
-            'comment-syntax12': ["foo{# } #}", {}, "foo"],
+        // Comments can contain invalid stuff.
+        'comment-syntax03': ["foo{#  {% if %}  #}", {}, "foo"],
+        'comment-syntax04': ["foo{#  {% endblock %}  #}", {}, "foo"],
+        'comment-syntax05': ["foo{#  {% somerandomtag %}  #}", {}, "foo"],
+        'comment-syntax06': ["foo{# {% #}", {}, "foo"],
+        'comment-syntax07': ["foo{# %} #}", {}, "foo"],
+        'comment-syntax08': ["foo{# %} #}bar", {}, "foobar"],
+        'comment-syntax09': ["foo{# {{ #}", {}, "foo"],
+        'comment-syntax10': ["foo{# }} #}", {}, "foo"],
+        'comment-syntax11': ["foo{# { #}", {}, "foo"],
+        'comment-syntax12': ["foo{# } #}", {}, "foo"],
 
-            /*
-            ### COMMENT TAG ###########################################################
-            'comment-tag01': ("{% comment %}this is hidden{% endcomment %}hello", {}, "hello"),
-            'comment-tag02': ("{% comment %}this is hidden{% endcomment %}hello{% comment %}foo{% endcomment %}", {}, "hello"),
+        //### COMMENT TAG ###########################################################
+        'comment-tag01': ["{% comment %}this is hidden{% endcomment %}hello", {}, "hello"],
+        'comment-tag02': ["{% comment %}this is hidden{% endcomment %}hello{% comment %}foo{% endcomment %}", {}, "hello"],
 
-            # Comment tag can contain invalid stuff.
-            'comment-tag03': ("foo{% comment %} {% if %} {% endcomment %}", {}, "foo"),
-            'comment-tag04': ("foo{% comment %} {% endblock %} {% endcomment %}", {}, "foo"),
-            'comment-tag05': ("foo{% comment %} {% somerandomtag %} {% endcomment %}", {}, "foo"),
+        //# Comment tag can contain invalid stuff.
+        'comment-tag03': ["foo{% comment %} {% if %} {% endcomment %}", {}, "foo"],
+        'comment-tag04': ["foo{% comment %} {% endblock %} {% endcomment %}", {}, "foo"],
+        'comment-tag05': ["foo{% comment %} {% somerandomtag %} {% endcomment %}", {}, "foo"],
 
-            ### CYCLE TAG #############################################################
-            'cycle01': ('{% cycle a %}', {}, template.TemplateSyntaxError),
-            'cycle02': ('{% cycle a,b,c as abc %}{% cycle abc %}', {}, 'ab'),
-            'cycle03': ('{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}', {}, 'abc'),
-            'cycle04': ('{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}', {}, 'abca'),
-            'cycle05': ('{% cycle %}', {}, template.TemplateSyntaxError),
-            'cycle06': ('{% cycle a %}', {}, template.TemplateSyntaxError),
-            'cycle07': ('{% cycle a,b,c as foo %}{% cycle bar %}', {}, template.TemplateSyntaxError),
-            'cycle08': ('{% cycle a,b,c as foo %}{% cycle foo %}{{ foo }}{{ foo }}{% cycle foo %}{{ foo }}', {}, 'abbbcc'),
+        //### CYCLE TAG #############################################################
+        'cycle01': ['{% cycle a %}', {}, Thistle.TemplateSyntaxError],
+        'cycle02': ['{% cycle a,b,c as abc %}{% cycle abc %}', {}, 'ab'],
+
+        'cycle03': ['{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}', {}, 'abc'],
+        'cycle04': ['{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}', {}, 'abca'],
+        'cycle05': ['{% cycle %}', {}, Thistle.TemplateSyntaxError],
+        'cycle06': ['{% cycle a %}', {}, Thistle.TemplateSyntaxError],
+        'cycle07': ['{% cycle a,b,c as foo %}{% cycle bar %}', {}, Thistle.TemplateSyntaxError],
+        'cycle08': ['{% cycle a,b,c as foo %}{% cycle foo %}{{ foo }}{{ foo }}{% cycle foo %}{{ foo }}', {}, 'abbbcc'],
+        /*
             'cycle09': ("{% for i in test %}{% cycle a,b %}{{ i }},{% endfor %}", {'test': range(5)}, 'a0,b1,a2,b3,a4,'),
-            'cycle10': ("{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}", {}, 'ab'),
-            'cycle11': ("{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}", {}, 'abc'),
-            'cycle12': ("{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, 'abca'),
+        */
+        'cycle10': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}", {}, 'ab'],
+        'cycle11': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}", {}, 'abc'],
+        'cycle12': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, 'abca'],
+        /*
             'cycle13': ("{% for i in test %}{% cycle 'a' 'b' %}{{ i }},{% endfor %}", {'test': range(5)}, 'a0,b1,a2,b3,a4,'),
-            'cycle14': ("{% cycle one two as foo %}{% cycle foo %}", {'one': '1','two': '2'}, '12'),
+        */
+        'cycle14': ["{% cycle one two as foo %}{% cycle foo %}", {'one': '1','two': '2'}, '12'],
+        /*
             'cycle15': ("{% for i in test %}{% cycle aye bee %}{{ i }},{% endfor %}", {'test': range(5), 'aye': 'a', 'bee': 'b'}, 'a0,b1,a2,b3,a4,'),
-            'cycle16': ("{% cycle one|lower two as foo %}{% cycle foo %}", {'one': 'A','two': '2'}, 'a2'),
-            'cycle17': ("{% cycle 'a' 'b' 'c' as abc silent %}{% cycle abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, ""),
-            'cycle18': ("{% cycle 'a' 'b' 'c' as foo invalid_flag %}", {}, template.TemplateSyntaxError),
-            'cycle19': ("{% cycle 'a' 'b' as silent %}{% cycle silent %}", {}, "ab"),
-            'cycle20': ("{% cycle one two as foo %} &amp; {% cycle foo %}", {'one' : 'A & B', 'two' : 'C & D'}, "A & B &amp; C & D"),
+        */
+        'cycle16': ["{% cycle one|lower two as foo %}{% cycle foo %}", {'one': 'A','two': '2'}, 'a2'],
+        'cycle17': ["{% cycle 'a' 'b' 'c' as abc silent %}{% cycle abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, ""],
+        'cycle18': ["{% cycle 'a' 'b' 'c' as foo invalid_flag %}", {}, Thistle.TemplateSyntaxError],
+        'cycle19': ["{% cycle 'a' 'b' as silent %}{% cycle silent %}", {}, "ab"],
+        'cycle20': ["{% cycle one two as foo %} &amp; {% cycle foo %}", {'one' : 'A & B', 'two' : 'C & D'}, "A & B &amp; C & D"],
+        /*
             'cycle21': ("{% filter force_escape %}{% cycle one two as foo %} & {% cycle foo %}{% endfilter %}", {'one' : 'A & B', 'two' : 'C & D'}, "A &amp; B &amp; C &amp; D"),
             'cycle22': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "1234"),
             'cycle23': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ abc }}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "a1b2c3a4"),
             'included-cycle': ('{{ abc }}', {'abc': 'xxx'}, 'xxx'),
             'cycle24': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{% include 'included-cycle' %}{% endfor %}", {'values': [1,2,3,4]}, "abca"),
+        */
 
+            /*
             ### EXCEPTIONS ############################################################
 
             # Raise exception for invalid template name
@@ -1178,7 +1187,9 @@ exports.testBasic = function(test) {
     };
 
     for (var tcase in tests) {
-        //if (tcase != 'filter-syntax10') continue;
+        // if (tcase != 'basic-syntax02') continue;
+        // if (tcase != 'comment-tag01') continue;
+        // if (tcase != 'cycle02') continue;
 
         var tdata = tests[tcase];
 
@@ -1188,7 +1199,7 @@ exports.testBasic = function(test) {
         try {
             var func = function() {
                 var thistle = new Thistle(tdata[0]);
-                return thistle.render(tdata[1]);
+                return thistle.render(new Thistle.Context(tdata[1]));
             };
 
             //sys.puts(func());
@@ -1199,9 +1210,12 @@ exports.testBasic = function(test) {
                 test.equal(tdata[2], func(), tcase);
             }
         } catch (e) {
-            sys.puts(e instanceof Thistle.TemplateSyntaxError);
-            sys.puts(e.name);
-            sys.puts("MESSAGE: " + e.message);
+            sys.puts('EXCEPTION = ' + e);
+            if (e != undefined) {
+                sys.puts("TYPE = " + typeof e + "Is TemplateSyntax = " + e instanceof Thistle.TemplateSyntaxError);
+                sys.puts(e.name);
+                sys.puts("MESSAGE: " + e.message);
+            }
             sys.puts("EXCEPTION in " + tcase);
             throw e;
         }

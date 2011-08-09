@@ -5,7 +5,7 @@ var Token  = require('./token');
 module.exports = Thistle;
 
 function Thistle(tmpl) {
-    var Parser = require('./parser');
+    var Parser = require('./parser').Parser;
     var Lexer  = require('./lexer');
 
     this.lexer  = new Lexer(tmpl);
@@ -18,6 +18,7 @@ xParseException.prototype = new Error();
 xParseException.prototype.constructor = xParseException;
 xParseException.prototype.name = "Thistle.ParseException";
 
+Thistle.Context = require('./context');
 
 Thistle.FILTER_SEPARATOR = '|';
 Thistle.FILTER_ARGUMENT_SEPARATOR = ':';
@@ -40,12 +41,15 @@ Thistle._filters = {}
 
 Thistle.prototype = {
     render : function(view) {
-        // sys.puts('Doing render');
+        // sys.puts('Doing render view = ' + view);
         var data;
         
         try {
+            view.render_context.push();
             data = this._nodes.render(view || {});
+            view.render_context.pop();
         } catch (e) {
+            view.render_context.pop();
             throw this.TemplateSyntaxError;
         }
 

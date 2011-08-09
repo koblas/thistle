@@ -3,6 +3,7 @@ var extend = require('./util');
 var Token = require('./token');
 var Thistle = require('./thistle');
 var XRegExp = require('./xregexp');
+var node_mod = require('./node');
 
 function VariableDoesNotExist(message) { this.message = message; Error.apply(this, arguments); }
 VariableDoesNotExist.prototype = new Error();
@@ -27,15 +28,14 @@ Parser.prototype = {
 
         var nodelist = this.create_nodelist();
 
-        sys.puts("LEN = " + this.tokens.length);
+        // sys.puts("LEN = " + this.tokens.length);
 
         while (this.tokens.length != 0) {
             var token = this.next_token();
-            sys.puts("TOKEN = " + token);
             // sys.puts("TOKEN = ' + token);
             if (token.type == Token.TOKEN_TEXT) {
                 //sys.puts("DOING TEXT");
-                this.extend_nodelist(nodelist, new TextNode(token.contents), token);
+                this.extend_nodelist(nodelist, new node_mod.TextNode(token.contents), token);
                 //sys.puts("DONEDOING TEXT " + nodelist.length);
             } else if (token.type == Token.TOKEN_VAR) {
                 //sys.puts("DOING VAR");
@@ -97,21 +97,21 @@ Parser.prototype = {
     },
 
     create_variable_node : function(filter_expression) {
-        return new VariableNode(filter_expression);
+        return new node_mod.VariableNode(filter_expression);
     },
 
     create_nodelist : function() {
-        return new NodeList();
+        return new node_mod.NodeList();
     },
 
     extend_nodelist : function(nodelist, node, token) {
-        if (node.must_be_first && nodelist.length != 0) {
+        if (node_mod.must_be_first && nodelist.length != 0) {
             if (nodelist.contains_nontext) {
             } else {
                 // TODO - figure this out.
             }
         }
-        if ((nodelist instanceof NodeList) && !(node instanceof TextNode)) 
+        if ((nodelist instanceof node_mod.NodeList) && !(node instanceof node_mod.TextNode)) 
             nodelist.contains_nontext = true;
         nodelist.push(node);
     },
@@ -158,106 +158,6 @@ Parser.prototype = {
         return f;
     }
 };
-
-//
-//  
-//
-var Node = function() {
-    this.must_be_first = false;
-}
-
-extend(Node, Object, {
-    render : function (context) {
-        // Return the node rendered as a string
-    },
-    get_nodes_by_type : function (nodetype) {
-        var nodes = [];
-        if (this instanceof nodetype)
-            nodes.push(this); 
-        var nlist = node.nodelist || [];
-        for (var idx in nlist) {
-            var chld = nlist[idx].get_nodes_by_type(nodetype);
-            for (var j in chld) {
-                nodes.push(chld[j]);
-            }
-        }
-
-        return nodes;
-    }
-});
-
-//
-//  
-//
-var NodeList = function() {
-}
-
-extend(NodeList, Array, {
-    render_node : function(node, context) {
-        return node.render(context);
-    },
-        
-    render : function(context) {
-        var t = this;
-        var bits = this.map(function(node) {
-            if (node instanceof Node) {
-                // sys.puts("NodeList context = " + context);
-                return t.render_node(node, context);
-            } else {
-                return node;
-            }
-        });
-
-        return bits.join('');
-    },
-
-    get_nodes_by_type : function(nodetype) {
-        var nodes = []
-        for (var idx in this) {
-            var chld = this[idx].get_nodes_by_type(nodetype);
-            for (var j in chld) {
-                nodes.push(chld[j]);
-            }
-        }
-        return nodes;
-    }
-});
-
-//
-//
-//
-function TextNode(s) {
-    this.s = s;
-    this.must_be_first = false;
-}
-extend(TextNode, Node, {
-    toString : function() {
-        return "<Text Node: '" + this.s.substr(0,25) + "'>";
-    },
-    render : function(context) {
-        return this.s;
-    }
-});
-
-function VariableNode(filter_expression) {
-    this.filter_expression = filter_expression;
-    this.must_be_first = false;
-}
-extend(VariableNode, Node, {
-    toString : function() {
-        return "<Variable Node: " + this.filter_expression + ">";
-    },
-    render : function(context) {
-        function in_context(value, context) {
-            // TODO - work
-            return value;
-        };
-
-        var output = this.filter_expression.resolve(context);
-
-        return in_context(output, context);
-    }
-});
 
 //
 //
@@ -506,5 +406,4 @@ extend(FilterExpression, Object, {
 
 module.exports = {
     Parser : Parser,
-    Node   : Node,
 };

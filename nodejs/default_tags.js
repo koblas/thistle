@@ -1,11 +1,11 @@
 var sys = require('sys');
 var extend = require('./util');
 var Thistle = require('./thistle');
-var Node   = require('./parser').Node;
+var node   = require('./node');
 
 var CommentNode = function() { }
 
-extend(CommentNode, Node, {
+extend(CommentNode, node.Node, {
     render : function (context) { return ''; },
     toString : function() { return "<Comment Node>"; }
 });
@@ -19,7 +19,7 @@ var CycleNode = function(cyclevars, variable_name, silent) {
 }
 CycleNode.index = 100;
 
-extend(CycleNode, Node, {
+extend(CycleNode, node.Node, {
     render : function (context) { 
         if (typeof context.render_context[this.ident] == 'undefined')  {
             var self = this;
@@ -50,11 +50,80 @@ var ForNode = function(loopvars, sequence, is_reversed, nodelist_loop, nodelist_
     this.sequence = sequence;
     this.is_reversed = is_reversed;
     this.nodelist_loop = nodelist_loop;
-    if (nodelist_empty == null or nodelist_empty == undefined) {
-        this.nodelist_empty = new NodeList();
+    if (nodelist_empty == null || nodelist_empty == undefined) 
+        this.nodelist_empty = new node.NodeList();
     else
         this.nodelist_empty = nodelist_empty;
 }
+
+extend(ForNode, node.Node, {
+    render : function(context) {
+        var  parentloop;
+
+        if (context.has_key('forloop')) {
+            parentloop = context['forloop'];
+        } else {
+            parentloop = {};
+        }
+
+        context.push();
+
+        var values = null;
+        try {
+            values = this.sequence.resolve(context, true);
+        } catch(e) {
+        }
+
+        if (values == null)
+            values = [];
+
+        if (values.length < 1) {
+            context.pop();
+            return self.nodelist_empty.render(context);
+        }
+
+        var nodelist = new node.NodeList();
+        if (this.is_reversed)
+            values = values.reverse();
+
+        var loop_dict = { parentloop : parentloop };
+
+        // Create a forloop value in the context.  We'll update counters on each
+        // iteration just below.
+        context.set('forloop', loop_dict);
+
+        for (var i = 0; i < values.length; i++) {
+            var  item = values[i];
+
+            // sys.puts("item["+i+"] = " + item);
+
+            loop_dict['counter0'] = i;
+            loop_dict['counter'] = i+1;
+            // Reverse counter iteration numbers.
+            loop_dict['revcounter'] = values.length - i;
+            loop_dict['revcounter0'] = values.length - i - 1;
+            // Boolean values designating first and last times through loop.
+            loop_dict['first'] = (i == 0);
+            loop_dict['last'] = (i == values.length - 1);
+
+            pop_context = false;
+
+            context.set(this.loopvars[0], item);
+
+            for (var idx = 0; idx < this.nodelist_loop.length; idx++) {
+                nodelist.push(this.nodelist_loop[idx].render(context));
+            }
+
+            if (pop_context)
+                context.pop();
+        }
+
+        context.pop();
+
+        return nodelist.render(context);
+    },
+    toString : function() { return "<For Node>"; }
+});
 
 //
 //

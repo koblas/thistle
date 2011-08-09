@@ -368,9 +368,12 @@ exports.testBasic = function(test) {
             'firstof07': ('{% firstof a b "c" %}', {'a':0}, 'c'),
             'firstof08': ('{% firstof a b "c and d" %}', {'a':0,'b':0}, 'c and d'),
             'firstof09': ('{% firstof %}', {}, template.TemplateSyntaxError),
+        */
 
-            ### FOR TAG ###############################################################
-            'for-tag01': ("{% for val in values %}{{ val }}{% endfor %}", {"values": [1, 2, 3]}, "123"),
+        //### FOR TAG ###############################################################
+        'for-tag01': ["{% for val in values %}{{ val }}{% endfor %}", {"values": [1, 2, 3]}, "123"],
+
+        /*
             'for-tag02': ("{% for val in values reversed %}{{ val }}{% endfor %}", {"values": [1, 2, 3]}, "321"),
             'for-tag-vars01': ("{% for val in values %}{{ forloop.counter }}{% endfor %}", {"values": [6, 6, 6]}, "123"),
             'for-tag-vars02': ("{% for val in values %}{{ forloop.counter0 }}{% endfor %}", {"values": [6, 6, 6]}, "012"),
@@ -1189,7 +1192,7 @@ exports.testBasic = function(test) {
     for (var tcase in tests) {
         // if (tcase != 'basic-syntax02') continue;
         // if (tcase != 'comment-tag01') continue;
-        // if (tcase != 'cycle02') continue;
+        if (tcase != 'for-tag01') continue;
 
         var tdata = tests[tcase];
 

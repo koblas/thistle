@@ -27,8 +27,11 @@ Parser.prototype = {
 
         var nodelist = this.create_nodelist();
 
+        sys.puts("LEN = " + this.tokens.length);
+
         while (this.tokens.length != 0) {
             var token = this.next_token();
+            sys.puts("TOKEN = " + token);
             // sys.puts("TOKEN = ' + token);
             if (token.type == Token.TOKEN_TEXT) {
                 //sys.puts("DOING TEXT");
@@ -76,13 +79,11 @@ Parser.prototype = {
                 this.extend_nodelist(nodelist, compiled_result, token);
                 this.exit_command();
             }
-
-            if (parse_until.length != 0) {
-                this.unclosed_block_tag(parse_until);
-            }
         }
 
-        //sys.puts("DONE PARSE");
+        if (parse_until.length != 0) 
+            this.unclosed_block_tag(parse_until);
+
         return nodelist;
     },
 

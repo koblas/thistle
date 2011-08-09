@@ -40,6 +40,25 @@ extend(CycleNode, Node, {
     toString : function() { return "<Cycle Node>"; }
 });
 
+//
+//
+//
+var ForNode = function(loopvars, sequence, is_reversed, nodelist_loop, nodelist_empty) {
+    this.child_nodelists = ['nodelist_loop', 'nodelist_empty']
+
+    this.loopvars = loopvars;
+    this.sequence = sequence;
+    this.is_reversed = is_reversed;
+    this.nodelist_loop = nodelist_loop;
+    if (nodelist_empty == null or nodelist_empty == undefined) {
+        this.nodelist_empty = new NodeList();
+    else
+        this.nodelist_empty = nodelist_empty;
+}
+
+//
+//
+//
 var DefaultTags = {
     comment : function(parser, token) {
         parser.skip_past('endcomment');
@@ -104,7 +123,40 @@ var DefaultTags = {
         }
 
         return node;
-    }
+    },
+
+    'for' : function(parser, token) {
+        var bits = token.contents.split(/\s+/)
+
+        if (bits.length < 4)
+            throw new Thistle.TemplateSyntaxError("'for' statements should have at least four words: " + token.contents);
+
+        var is_reversed = (bits[bits.length - 1] == 'reversed');
+        var in_index = bits.length + (is_reversed ? -3 : -2);
+
+        if (bits[in_index] != 'in')
+            throw new Thistle.TemplateSyntaxError("'for' statements should use the format 'for x in y': " + token.contents);
+
+        var loopvars = bits.slice(1, in_index).join(' ').split(/ *, */);
+        for (var idx in loopvars) {
+            var v = loopvars[idx];
+            if (v.length == 0 || v.indexOf(' ') != -1)
+                throw new Thistle.TemplateSyntaxError("'for' tag received an invalid argument: " + token.contents);
+        }
+
+        var sequence = parser.compile_filter(bits[in_index+1]);
+        var nodelist_loop = parser.parse(['empty', 'endfor']);
+        var nodelist_empty = null;
+
+        token = parser.next_token();
+
+        if (token.contents == 'empty') {
+            nodelist_empty = parser.parse(['endfor'])
+            parser.delete_first_token()
+        }
+
+        return new ForNode(loopvars, sequence, is_reversed, nodelist_loop, nodelist_empty);
+    },
 };
 
 module.exports = DefaultTags;

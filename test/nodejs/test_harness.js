@@ -382,25 +382,28 @@ exports.testBasic = function(test) {
         /*
             'for-tag-vars05': ("{% for val in values %}{% if forloop.first %}f{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "fxx"),
             'for-tag-vars06': ("{% for val in values %}{% if forloop.last %}l{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "xxl"),
-            'for-tag-unpack01': ("{% for key,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, "one:1/two:2/"),
-            'for-tag-unpack03': ("{% for key, value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, "one:1/two:2/"),
-            'for-tag-unpack04': ("{% for key , value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, "one:1/two:2/"),
-            'for-tag-unpack05': ("{% for key ,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, "one:1/two:2/"),
-            'for-tag-unpack06': ("{% for key value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, template.TemplateSyntaxError),
-            'for-tag-unpack07': ("{% for key,,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, template.TemplateSyntaxError),
-            'for-tag-unpack08': ("{% for key,value, in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, template.TemplateSyntaxError),
-            # Ensure that a single loopvar doesn't truncate the list in val.
-            'for-tag-unpack09': ("{% for val in items %}{{ val.0 }}:{{ val.1 }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, "one:1/two:2/"),
-            # Otherwise, silently truncate if the length of loopvars differs to the length of each set of items.
-            'for-tag-unpack10': ("{% for x,y in items %}{{ x }}:{{ y }}/{% endfor %}", {"items": (('one', 1, 'carrot'), ('two', 2, 'orange'))}, "one:1/two:2/"),
-            'for-tag-unpack11': ("{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": (('one', 1), ('two', 2))}, ("one:1,/two:2,/", "one:1,INVALID/two:2,INVALID/")),
-            'for-tag-unpack12': ("{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": (('one', 1, 'carrot'), ('two', 2))}, ("one:1,carrot/two:2,/", "one:1,carrot/two:2,INVALID/")),
-            'for-tag-unpack13': ("{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": (('one', 1, 'carrot'), ('two', 2, 'cheese'))}, ("one:1,carrot/two:2,cheese/", "one:1,carrot/two:2,cheese/")),
-            'for-tag-unpack14': ("{% for x,y in items %}{{ x }}:{{ y }}/{% endfor %}", {"items": (1, 2)}, (":/:/", "INVALID:INVALID/INVALID:INVALID/")),
-            'for-tag-empty01': ("{% for val in values %}{{ val }}{% empty %}empty text{% endfor %}", {"values": [1, 2, 3]}, "123"),
-            'for-tag-empty02': ("{% for val in values %}{{ val }}{% empty %}values array empty{% endfor %}", {"values": []}, "values array empty"),
-            'for-tag-empty03': ("{% for val in values %}{{ val }}{% empty %}values array not found{% endfor %}", {}, "values array not found"),
+        */
+        'for-tag-unpack01': ["{% for key,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
+        'for-tag-unpack03': ["{% for key, value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
+        'for-tag-unpack04': ["{% for key , value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
+        'for-tag-unpack05': ["{% for key ,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
+        'for-tag-unpack06': ["{% for key value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, Thistle.TemplateSyntaxError],
+        'for-tag-unpack07': ["{% for key,,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, Thistle.TemplateSyntaxError],
+        'for-tag-unpack08': ["{% for key,value, in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, Thistle.TemplateSyntaxError],
+        // Ensure that a single loopvar doesn't truncate the list in val.
+        'for-tag-unpack09': ["{% for val in items %}{{ val.0 }}:{{ val.1 }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
+        // Otherwise, silently truncate if the length of loopvars differs to the length of each set of items.
+        'for-tag-unpack10': ["{% for x,y in items %}{{ x }}:{{ y }}/{% endfor %}", {"items": [['one', 1, 'carrot'], ['two', 2, 'orange']]}, "one:1/two:2/"],
+        'for-tag-unpack11': ["{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, ["one:1,/two:2,/", "one:1,INVALID/two:2,INVALID/"]],
+        'for-tag-unpack12': ["{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": [['one', 1, 'carrot'], ['two', 2]]}, ["one:1,carrot/two:2,/", "one:1,carrot/two:2,INVALID/"]],
+        'for-tag-unpack13': ["{% for x,y,z in items %}{{ x }}:{{ y }},{{ z }}/{% endfor %}", {"items": [['one', 1, 'carrot'], ['two', 2, 'cheese']]}, ("one:1,carrot/two:2,cheese/", "one:1,carrot/two:2,cheese/")],
+        'for-tag-unpack14': ["{% for x,y in items %}{{ x }}:{{ y }}/{% endfor %}", {"items": [1, 2]}, [":/:/", "INVALID:INVALID/INVALID:INVALID/"]],
 
+        'for-tag-empty01': ["{% for val in values %}{{ val }}{% empty %}empty text{% endfor %}", {"values": [1, 2, 3]}, "123"],
+        'for-tag-empty02': ["{% for val in values %}{{ val }}{% empty %}values array empty{% endfor %}", {"values": []}, "values array empty"],
+        'for-tag-empty03': ["{% for val in values %}{{ val }}{% empty %}values array not found{% endfor %}", {}, "values array not found"],
+
+        /*
             ### IF TAG ################################################################
             'if-tag01': ("{% if foo %}yes{% else %}no{% endif %}", {"foo": True}, "yes"),
             'if-tag02': ("{% if foo %}yes{% else %}no{% endif %}", {"foo": False}, "no"),
@@ -1193,6 +1196,7 @@ exports.testBasic = function(test) {
     for (var tcase in tests) {
         // if (tcase != 'basic-syntax02') continue;
         // if (tcase != 'comment-tag01') continue;
+        // if (tcase != 'for-tag-unpack11') continue;
 
         var tdata = tests[tcase];
 
@@ -1210,7 +1214,21 @@ exports.testBasic = function(test) {
             if (tdata[2] == Thistle.ParseException || tdata[2] == Thistle.TemplateSyntaxError) {
                 test.throws(func, tdata[2], tcase);
             } else {
-                test.equal(tdata[2], func(), tcase);
+                var val = func();
+
+                if (!(tdata[2] instanceof Array)) {
+                    test.equal(tdata[2], val, tcase);
+                } else {
+                    var found = false;
+                    for (var i = 0; i < tdata[2].length; i++) {
+                        if (tdata[2][i] == val) {
+                            test.equal(tdata[2][i], val, tcase);
+                            found = true;
+                        }
+                    }
+                    if (!found)
+                        test.equal(tdata[2], val, tcase);
+                }
             }
         } catch (e) {
             sys.puts('EXCEPTION = ' + e);

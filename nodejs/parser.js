@@ -143,6 +143,10 @@ Parser.prototype = {
         return this.tokens.shift();
     },
 
+    delete_first_token: function () {
+        this.tokens.shift();
+    },
+
     prepend_token : function(token) {
         this.tokens.unshift(token);
     },
@@ -368,7 +372,7 @@ extend(FilterExpression, Object, {
         return regex;
     }(),
 
-    resolve : function(context, ignore_failures) {
+    resolve: function(context, ignore_failures) {
         ignore_failures = ignore_failures || false;
 
         var obj;
@@ -376,7 +380,8 @@ extend(FilterExpression, Object, {
         if (this.val instanceof Variable) {
             obj = this.val.resolve(context);
             if (obj === undefined) {
-                obj = Thistle.TEMPLATE_STRING_IF_INVALID;
+                if (!ignore_failures)
+                    obj = Thistle.TEMPLATE_STRING_IF_INVALID;
             }
         } else {
             obj = this.val;

@@ -77,7 +77,7 @@ var Context = function(dict, autoescape, current_app, use_l10n) {
 
 extend(Context, BaseContext, {
     update : function (other_dict) {
-        self.dicts.push(other_dict);
+        this.dicts.push(other_dict);
     },
 
     copy_new : function(values) {

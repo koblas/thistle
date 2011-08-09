@@ -79,13 +79,14 @@ extend(ForNode, node.Node, {
 
         if (values.length < 1) {
             context.pop();
-            return self.nodelist_empty.render(context);
+            return this.nodelist_empty.render(context);
         }
 
         var nodelist = new node.NodeList();
         if (this.is_reversed)
             values = values.reverse();
 
+        var unpack = this.loopvars.length > 1;
         var loop_dict = { parentloop : parentloop };
 
         // Create a forloop value in the context.  We'll update counters on each
@@ -108,7 +109,20 @@ extend(ForNode, node.Node, {
 
             pop_context = false;
 
-            context.set(this.loopvars[0], item);
+            if (unpack) {
+                try {
+                    unpacked_vars = {};
+                    for (var idx = 0; idx < this.loopvars.length; idx++) {
+                        unpacked_vars[this.loopvars[idx]] = item[idx];
+                    }
+                    pop_context = true;
+                    context.update(unpacked_vars);
+                } catch (e) {
+                    // sys.puts(e);
+                }
+            } else {
+                context.set(this.loopvars[0], item);
+            }
 
             for (var idx = 0; idx < this.nodelist_loop.length; idx++) {
                 nodelist.push(this.nodelist_loop[idx].render(context));

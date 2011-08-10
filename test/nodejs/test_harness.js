@@ -64,8 +64,16 @@ OtherClass.prototype = {
     method : function() {
         return "OtherClass.method";
     }
-}
+};
 
+function TestObj() {
+};
+
+TestObj.prototype = {
+    is_true : function() { return true; },
+    is_false : function() { return false; },
+    is_bad : function() { don_run_me(); },
+};
 
 //
 //
@@ -143,8 +151,8 @@ exports.testBasic = function(test) {
         // purposes.
         'basic-syntax25': ['{{ "fred" }}', {}, "fred"],
 /*
-        'basic-syntax26': [r'{{ "\"fred\"" }}', {}, "\"fred\""],
-        'basic-syntax27': [r'{{ _("\"fred\"") }}', {}, "\"fred\""],
+        'basic-syntax26': ['{{ "\"fred\"" }}', {}, "\"fred\""],
+        'basic-syntax27': ['{{ _("\"fred\"") }}', {}, "\"fred\""],
 */
 
         // regression test for ticket #12554
@@ -192,7 +200,8 @@ exports.testBasic = function(test) {
 
         // Dictionary lookup wins out when there is a string and int version of the key.
         // *** Not a valid Javascript test ***
-        //'list-index07': ["{{ var.1 }}", {"var": {'1': "hello", 1: "world"}}, "hello"],
+        //   Not SUPPORTED by JavaScript
+        // 'list-index07': ["{{ var.1 }}", {"var": {'1': "hello", 1: "world"}}, "hello"],
 
         // Basic filter usage
         'filter-syntax01': ["{{ var|upper }}", {"var": "Django is the greatest!"}, "DJANGO IS THE GREATEST!"],
@@ -328,9 +337,10 @@ exports.testBasic = function(test) {
         */
         'cycle22': ["{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "1234"],
         'cycle23': ["{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ abc }}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "a1b2c3a4"],
+
         /*
-            'included-cycle': ('{{ abc }}', {'abc': 'xxx'}, 'xxx'),
-            'cycle24': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{% include 'included-cycle' %}{% endfor %}", {'values': [1,2,3,4]}, "abca"),
+            'included-cycle': ['{{ abc }}', {'abc': 'xxx'}, 'xxx'],
+            'cycle24': ["{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{% include 'included-cycle' %}{% endfor %}", {'values': [1,2,3,4]}, "abca"],
         */
 
             /*
@@ -461,65 +471,64 @@ exports.testBasic = function(test) {
         'if-tag-not01': ["{% if not foo %}no{% else %}yes{% endif %}", {'foo': true}, 'yes'],
         'if-tag-not02': ["{% if not not foo %}no{% else %}yes{% endif %}", {'foo': true}, 'no'],
 
-        /*
-            'if-tag-not06': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {}, 'no'),
-            'if-tag-not07': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'),
-            'if-tag-not08': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'),
-            'if-tag-not09': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'no'),
-            'if-tag-not10': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'no'),
+        'if-tag-not06': ["{% if foo and not bar %}yes{% else %}no{% endif %}", {}, 'no'],
+        'if-tag-not07': ["{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'],
+        'if-tag-not08': ["{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'],
+        'if-tag-not09': ["{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'no'],
+        'if-tag-not10': ["{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'no'],
 
-            'if-tag-not11': ("{% if not foo and bar %}yes{% else %}no{% endif %}", {}, 'no'),
-            'if-tag-not12': ("{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'no'),
-            'if-tag-not13': ("{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'no'),
-            'if-tag-not14': ("{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'yes'),
-            'if-tag-not15': ("{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'no'),
+        'if-tag-not11': ["{% if not foo and bar %}yes{% else %}no{% endif %}", {}, 'no'],
+        'if-tag-not12': ["{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'],
+        'if-tag-not13': ["{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'no'],
+        'if-tag-not14': ["{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'yes'],
+        'if-tag-not15': ["{% if not foo and bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'no'],
 
-            'if-tag-not16': ("{% if foo or not bar %}yes{% else %}no{% endif %}", {}, 'yes'),
-            'if-tag-not17': ("{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'yes'),
-            'if-tag-not18': ("{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'yes'),
-            'if-tag-not19': ("{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'no'),
-            'if-tag-not20': ("{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'yes'),
+        'if-tag-not16': ["{% if foo or not bar %}yes{% else %}no{% endif %}", {}, 'yes'],
+        'if-tag-not17': ["{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'yes'],
+        'if-tag-not18': ["{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'],
+        'if-tag-not19': ["{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'no'],
+        'if-tag-not20': ["{% if foo or not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'yes'],
 
-            'if-tag-not21': ("{% if not foo or bar %}yes{% else %}no{% endif %}", {}, 'yes'),
-            'if-tag-not22': ("{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'yes'),
-            'if-tag-not23': ("{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'no'),
-            'if-tag-not24': ("{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'yes'),
-            'if-tag-not25': ("{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'yes'),
+        'if-tag-not21': ["{% if not foo or bar %}yes{% else %}no{% endif %}", {}, 'yes'],
+        'if-tag-not22': ["{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'yes'],
+        'if-tag-not23': ["{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'no'],
+        'if-tag-not24': ["{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'yes'],
+        'if-tag-not25': ["{% if not foo or bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'yes'],
 
-            'if-tag-not26': ("{% if not foo and not bar %}yes{% else %}no{% endif %}", {}, 'yes'),
-            'if-tag-not27': ("{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'no'),
-            'if-tag-not28': ("{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'no'),
-            'if-tag-not29': ("{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'no'),
-            'if-tag-not30': ("{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'yes'),
+        'if-tag-not26': ["{% if not foo and not bar %}yes{% else %}no{% endif %}", {}, 'yes'],
+        'if-tag-not27': ["{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'],
+        'if-tag-not28': ["{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'no'],
+        'if-tag-not29': ["{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'no'],
+        'if-tag-not30': ["{% if not foo and not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'yes'],
 
-            'if-tag-not31': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {}, 'yes'),
-            'if-tag-not32': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'no'),
-            'if-tag-not33': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'yes'),
-            'if-tag-not34': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'yes'),
-            'if-tag-not35': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'yes'),
+        'if-tag-not31': ["{% if not foo or not bar %}yes{% else %}no{% endif %}", {}, 'yes'],
+        'if-tag-not32': ["{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'],
+        'if-tag-not33': ["{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'],
+        'if-tag-not34': ["{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'yes'],
+        'if-tag-not35': ["{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'yes'],
+
+        // Various syntax errors
+        'if-tag-error01': ["{% if %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error02': ["{% if foo and %}yes{% else %}no{% endif %}", {'foo': true}, Thistle.TemplateSyntaxError],
+        'if-tag-error03': ["{% if foo or %}yes{% else %}no{% endif %}", {'foo': true}, Thistle.TemplateSyntaxError],
+        'if-tag-error04': ["{% if not foo and %}yes{% else %}no{% endif %}", {'foo': true}, Thistle.TemplateSyntaxError],
+        'if-tag-error05': ["{% if not foo or %}yes{% else %}no{% endif %}", {'foo': true}, Thistle.TemplateSyntaxError],
+        'if-tag-error06': ["{% if abc def %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error07': ["{% if not %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error08': ["{% if and %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error09': ["{% if or %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error10': ["{% if == %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error11': ["{% if 1 == %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+        'if-tag-error12': ["{% if a not b %}yes{% endif %}", {}, Thistle.TemplateSyntaxError],
+
+        // If evaluations are shortcircuited where possible
+        // These tests will fail by taking too long to run. When the if clause
+        // is shortcircuiting correctly, the is_bad() function shouldn't be
+        // evaluated, and the deliberate sleep won't happen.
+        'if-tag-shortcircuit01': ['{% if x.is_true or x.is_bad %}yes{% else %}no{% endif %}', {'x': new TestObj()}, "yes"],
+        'if-tag-shortcircuit02': ['{% if x.is_false and x.is_bad %}yes{% else %}no{% endif %}', {'x': new TestObj()}, "no"],
 
     /*
-            # Various syntax errors
-            'if-tag-error01': ("{% if %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error02': ("{% if foo and %}yes{% else %}no{% endif %}", {'foo': True}, template.TemplateSyntaxError),
-            'if-tag-error03': ("{% if foo or %}yes{% else %}no{% endif %}", {'foo': True}, template.TemplateSyntaxError),
-            'if-tag-error04': ("{% if not foo and %}yes{% else %}no{% endif %}", {'foo': True}, template.TemplateSyntaxError),
-            'if-tag-error05': ("{% if not foo or %}yes{% else %}no{% endif %}", {'foo': True}, template.TemplateSyntaxError),
-            'if-tag-error06': ("{% if abc def %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error07': ("{% if not %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error08': ("{% if and %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error09': ("{% if or %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error10': ("{% if == %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error11': ("{% if 1 == %}yes{% endif %}", {}, template.TemplateSyntaxError),
-            'if-tag-error12': ("{% if a not b %}yes{% endif %}", {}, template.TemplateSyntaxError),
-
-            # If evaluations are shortcircuited where possible
-            # These tests will fail by taking too long to run. When the if clause
-            # is shortcircuiting correctly, the is_bad() function shouldn't be
-            # evaluated, and the deliberate sleep won't happen.
-            'if-tag-shortcircuit01': ('{% if x.is_true or x.is_bad %}yes{% else %}no{% endif %}', {'x': TestObj()}, "yes"),
-            'if-tag-shortcircuit02': ('{% if x.is_false and x.is_bad %}yes{% else %}no{% endif %}', {'x': TestObj()}, "no"),
-
             # Non-existent args
             'if-tag-badarg01':("{% if x|default_if_none:y %}yes{% endif %}", {}, ''),
             'if-tag-badarg02':("{% if x|default_if_none:y %}yes{% endif %}", {'y': 0}, ''),
@@ -1173,23 +1182,23 @@ exports.testBasic = function(test) {
             # implementation details (fortunately, the (no)autoescape block
             # tags can be used in those cases)
             'autoescape-filtertag01': ("{{ first }}{% filter safe %}{{ first }} x<y{% endfilter %}", {"first": "<a>"}, template.TemplateSyntaxError),
-
-            # ifqeual compares unescaped vales.
-            'autoescape-ifequal01': ('{% ifequal var "this & that" %}yes{% endifequal %}', { "var": "this & that" }, "yes"),
-
-            # Arguments to filters are 'safe' and manipulate their input unescaped.
-            'autoescape-filters01': ('{{ var|cut:"&" }}', { "var": "this & that" }, "this  that" ),
-            'autoescape-filters02': ('{{ var|join:" & \" }}', { "var": ("Tom", "Dick", "Harry") }, "Tom & Dick & Harry"),
-
-            # Literal strings are safe.
-            'autoescape-literals01': ('{{ "this & that" }}',{}, "this & that"),
-
-            # Iterating over strings outputs safe characters.
-            'autoescape-stringiterations01': ('{% for l in var %}{{ l }},{% endfor %}', {'var': 'K&R'}, "K,&amp;,R,"),
-
-            # Escape requirement survives lookup.
-            'autoescape-lookup01': ('{{ var.key }}', { "var": {"key": "this & that" }}, "this &amp; that"),
         */
+
+        // ifqeual compares unescaped vales.
+        'autoescape-ifequal01': ['{% if var == "this & that" %}yes{% endif %}', { "var": "this & that" }, "yes"],
+
+        // Arguments to filters are 'safe' and manipulate their input unescaped.
+        'autoescape-filters01': ['{{ var|cut:"&" }}', { "var": "this & that" }, "this  that" ],
+        'autoescape-filters02': ['{{ var|join:" & \" }}', { "var": ["Tom", "Dick", "Harry"] }, "Tom & Dick & Harry"],
+
+        // Literal strings are safe.
+        'autoescape-literals01': ['{{ "this & that" }}',{}, "this & that"],
+
+        // Iterating over strings outputs safe characters.
+        'autoescape-stringiterations01': ['{% for l in var %}{{ l }},{% endfor %}', {'var': 'K&R'}, "K,&amp;,R,"],
+
+        // Escape requirement survives lookup.
+        'autoescape-lookup01': ['{{ var.key }}', { "var": {"key": "this & that" }}, "this &amp; that"],
     };
 
     for (var tcase in tests) {

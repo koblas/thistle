@@ -2,6 +2,11 @@ var sys = require('sys');
 var extend = require('./util');
 var Thistle = require('./thistle');
 
+function mark_safe(s) {
+    s.is_safe = true;
+    return s;
+}
+
 //
 //  
 //
@@ -52,7 +57,7 @@ extend(NodeList, Array, {
             }
         });
 
-        return bits.join('');
+        return mark_safe(bits.join(''));
     },
 
     get_nodes_by_type : function(nodetype) {
@@ -101,9 +106,12 @@ extend(VariableNode, Node, {
         return "<Variable Node: " + this.filter_expression + ">";
     },
     render : function(context) {
-        function in_context(value, context) {
-            // TODO - work
-            return value;
+        function in_context(value, context, is_safe) {
+            if (value == undefined)
+                return "";
+            if (value instanceof Thistle.SafeString || value.is_safe || is_safe)
+                return value;
+            return new Thistle.SafeString(value.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
         };
 
         var output = this.filter_expression.resolve(context);

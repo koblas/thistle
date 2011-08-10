@@ -6,7 +6,7 @@ var XRegExp = require('./xregexp');
 var node_mod = require('./node');
 
 function VariableDoesNotExist(message) { this.message = message; Error.apply(this, arguments); }
-VariableDoesNotExist.prototype = new Error();
+VariableDoesNotExist.prototype = new Error;
 VariableDoesNotExist.prototype.constructor = VariableDoesNotExist;
 VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
@@ -188,7 +188,7 @@ function Variable(val) {
             val = substr(2, val.length - 3);
         }
         if ((val.charAt(0) == '"' || val.charAt(0) == "'") && val.charAt(0) == val.charAt(val.length-1)) {
-            this.literal = val.substr(1, val.length - 2).replace('\\'+val.charAt(0), val.charAt(0)).replace('\\\\', '\\');
+            this.literal = new Thistle.SafeString(val.substr(1, val.length - 2).replace('\\'+val.charAt(0), val.charAt(0)).replace('\\\\', '\\'));
         } else {
             if (val.indexOf(Thistle.VARIABLE_ATTRIBUTE_SEPARATOR + "_") != -1 || val == "_") 
                 throw new Thistle.ParseException("Variables and attributes may not begin with underscores: " + val);
@@ -387,9 +387,15 @@ extend(FilterExpression, Object, {
             obj = this.val;
         }
 
+        var is_safe = false;
+
         for (var idx in this.filters) {
             var func = this.filters[idx].func;
             var args = this.filters[idx].args;
+
+            // sys.puts("HI" + func);
+            if (func)
+                is_safe = func.is_safe;
 
             var call_args = [];
             for (var i in args) {
@@ -398,7 +404,7 @@ extend(FilterExpression, Object, {
 
             obj = func.apply(this, [obj].concat(call_args));
         }
-        return obj
+        return is_safe ? new Thistle.SafeString(obj) : obj;
     },
 
     args_check : function(name, provided) {

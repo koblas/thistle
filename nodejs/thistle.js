@@ -13,10 +13,20 @@ function Thistle(tmpl) {
     this._nodes = this.parser.parse();
 };
 
-function xParseException(message) { this.message = message; Error.apply(this, arguments); }
-xParseException.prototype = new Error();
+function xParseException(message) { 
+    var err = new Error();
+
+    if (err.stack) {
+        this.stack = this.stack.split(/\n/)[0] + ": " + message + "\n" + err.stack.split(/\n/).slice(2).join("\n");
+    }
+
+    this.message = message;
+}
+
+xParseException.prototype = new Error;
 xParseException.prototype.constructor = xParseException;
 xParseException.prototype.name = "Thistle.ParseException";
+// xParseException.prototype.toString = function() { return "Thistle.ParseException: " + this.message; }
 
 Thistle.Context = require('./context');
 
@@ -43,6 +53,9 @@ Thistle.prototype = {
     render : function(view) {
         // sys.puts('Doing render view = ' + view);
         var data;
+
+        if (!(view instanceof Thistle.Context))
+            view = new Thistle.Context(view);
         
         try {
             view.render_context.push();
@@ -50,9 +63,19 @@ Thistle.prototype = {
             view.render_context.pop();
         } catch (e) {
             view.render_context.pop();
-            throw this.TemplateSyntaxError;
+            // throw new Thistle.TemplateSyntaxError('no context');
+            throw e;
         }
 
         return data;
     },
 };
+
+Thistle.SafeString = function(value) {
+    value = value || "";
+    this.length = value.length;
+    this.valueOf = function() { return value; }
+    this.toString = function() { return value; }
+    this.is_safe = true;
+}
+Thistle.SafeString.prototype = new String;

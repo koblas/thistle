@@ -1,6 +1,14 @@
 var sys = require('sys');
 
 var Filters = {
+    cut : function(value, arg) {
+        return value.replace(arg, "");
+    },
+    join : function(value, arg) {
+        sys.puts(value);
+        sys.puts(arg);
+        return value.join(arg);
+    },
     lower : function(value) {
         return value.toLowerCase();
     },
@@ -45,5 +53,9 @@ var Filters = {
         return words.join(' ');
     }
 };
+
+
+Filters.join.is_safe = true;
+Filters.cut.is_safe = true;
 
 module.exports = Filters;

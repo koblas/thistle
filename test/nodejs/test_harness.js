@@ -375,10 +375,8 @@ exports.testBasic = function(test) {
         'for-tag-vars03': ["{% for val in values %}{{ forloop.revcounter }}{% endfor %}", {"values": [6, 6, 6]}, "321"],
         'for-tag-vars04': ["{% for val in values %}{{ forloop.revcounter0 }}{% endfor %}", {"values": [6, 6, 6]}, "210"],
 
-        /*
-            'for-tag-vars05': ("{% for val in values %}{% if forloop.first %}f{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "fxx"),
-            'for-tag-vars06': ("{% for val in values %}{% if forloop.last %}l{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "xxl"),
-        */
+        'for-tag-vars05': ["{% for val in values %}{% if forloop.first %}f{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "fxx"],
+        'for-tag-vars06': ["{% for val in values %}{% if forloop.last %}l{% else %}x{% endif %}{% endfor %}", {"values": [6, 6, 6]}, "xxl"],
         'for-tag-unpack01': ["{% for key,value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
         'for-tag-unpack03': ["{% for key, value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
         'for-tag-unpack04': ["{% for key , value in items %}{{ key }}:{{ value }}/{% endfor %}", {"items": [['one', 1], ['two', 2]]}, "one:1/two:2/"],
@@ -434,38 +432,39 @@ exports.testBasic = function(test) {
             'if-tag-in-02': ("{% if 2 in x %}yes{% else %}no{% endif %}", {'x':[1]}, "no"),
             'if-tag-not-in-01': ("{% if 1 not in x %}yes{% else %}no{% endif %}", {'x':[1]}, "no"),
             'if-tag-not-in-02': ("{% if 2 not in x %}yes{% else %}no{% endif %}", {'x':[1]}, "yes"),
+        */
 
-            # AND
-            'if-tag-and01': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'yes'),
-            'if-tag-and02': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'no'),
-            'if-tag-and03': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'no'),
-            'if-tag-and04': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'no'),
-            'if-tag-and05': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': False}, 'no'),
-            'if-tag-and06': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'bar': False}, 'no'),
-            'if-tag-and07': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': True}, 'no'),
-            'if-tag-and08': ("{% if foo and bar %}yes{% else %}no{% endif %}", {'bar': True}, 'no'),
+        // AND
+        'if-tag-and01': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'yes'],
+        'if-tag-and02': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'no'],
+        'if-tag-and03': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'no'],
+        'if-tag-and04': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'no'],
+        'if-tag-and05': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': false}, 'no'],
+        'if-tag-and06': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'bar': false}, 'no'],
+        'if-tag-and07': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'foo': true}, 'no'],
+        'if-tag-and08': ["{% if foo and bar %}yes{% else %}no{% endif %}", {'bar': true}, 'no'],
 
-            # OR
-            'if-tag-or01': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'yes'),
-            'if-tag-or02': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'yes'),
-            'if-tag-or03': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'yes'),
-            'if-tag-or04': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'no'),
-            'if-tag-or05': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': False}, 'no'),
-            'if-tag-or06': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'bar': False}, 'no'),
-            'if-tag-or07': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': True}, 'yes'),
-            'if-tag-or08': ("{% if foo or bar %}yes{% else %}no{% endif %}", {'bar': True}, 'yes'),
+        // OR
+        'if-tag-or01': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'yes'],
+        'if-tag-or02': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'],
+        'if-tag-or03': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': true}, 'yes'],
+        'if-tag-or04': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': false, 'bar': false}, 'no'],
+        'if-tag-or05': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': false}, 'no'],
+        'if-tag-or06': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'bar': false}, 'no'],
+        'if-tag-or07': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'foo': true}, 'yes'],
+        'if-tag-or08': ["{% if foo or bar %}yes{% else %}no{% endif %}", {'bar': true}, 'yes'],
 
-            # multiple ORs
-            'if-tag-or09': ("{% if foo or bar or baz %}yes{% else %}no{% endif %}", {'baz': True}, 'yes'),
+        // multiple ORs
+        'if-tag-or09': ["{% if foo or bar or baz %}yes{% else %}no{% endif %}", {'baz': true}, 'yes'],
 
-            # NOT
-            'if-tag-not01': ("{% if not foo %}no{% else %}yes{% endif %}", {'foo': True}, 'yes'),
-            'if-tag-not02': ("{% if not not foo %}no{% else %}yes{% endif %}", {'foo': True}, 'no'),
-            # not03 to not05 removed, now TemplateSyntaxErrors
+        // NOT
+        'if-tag-not01': ["{% if not foo %}no{% else %}yes{% endif %}", {'foo': true}, 'yes'],
+        'if-tag-not02': ["{% if not not foo %}no{% else %}yes{% endif %}", {'foo': true}, 'no'],
 
+        /*
             'if-tag-not06': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {}, 'no'),
-            'if-tag-not07': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': True}, 'no'),
-            'if-tag-not08': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': True, 'bar': False}, 'yes'),
+            'if-tag-not07': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': true}, 'no'),
+            'if-tag-not08': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': true, 'bar': false}, 'yes'),
             'if-tag-not09': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'no'),
             'if-tag-not10': ("{% if foo and not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'no'),
 
@@ -499,6 +498,7 @@ exports.testBasic = function(test) {
             'if-tag-not34': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': True}, 'yes'),
             'if-tag-not35': ("{% if not foo or not bar %}yes{% else %}no{% endif %}", {'foo': False, 'bar': False}, 'yes'),
 
+    /*
             # Various syntax errors
             'if-tag-error01': ("{% if %}yes{% endif %}", {}, template.TemplateSyntaxError),
             'if-tag-error02': ("{% if foo and %}yes{% else %}no{% endif %}", {'foo': True}, template.TemplateSyntaxError),

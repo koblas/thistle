@@ -82,12 +82,12 @@ function prefix(bp, func) {
     // Creates an infix operator, given a binding power and a function that evaluates the node
 
     var klass = function() {
-        TokenBase();
+        TokenBase.apply(this);
         this.lbp = bp;
     }
 
     extend(klass, TokenBase, {
-        led: function(left, parser) {
+        nud: function(parser) {
             this.first = parser.expression(bp);
             this.second = null;
             return this;

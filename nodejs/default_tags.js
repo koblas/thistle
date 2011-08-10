@@ -139,6 +139,59 @@ extend(ForNode, node.Node, {
     toString : function() { return "<For Node>"; }
 });
 
+var IfNode = function(val, nodelist_true, nodelist_false) {
+    this.nodelist_true = nodelist_true;
+    this.nodelist_false = nodelist_false;
+    this.val = val;
+    this.child_nodelists = ['nodelist_true', 'nodelist_false'];
+}
+extend(IfNode, node.Node, {
+    render: function(context) {
+        try {
+            val = this.val.eval(context);
+        } catch(e) {
+            val = null;
+        }
+
+        if (val) 
+            return this.nodelist_true.render(context);
+        return this.nodelist_false.render(context);
+    },
+
+    toString: function() {
+        return "<IfNode>";
+    },
+});
+
+//
+//
+//
+var smartif = require('./smartif');
+
+function TemplateLiteral(value, text) {
+    smartif.Literal.call(this, value);
+    this.text = text;
+}
+extend(TemplateLiteral, smartif.Literal, {
+    display: function() {
+        return this.text;
+    },
+    eval: function(context) {
+        return this.value.resolve(context, true);
+    },
+});
+
+function TemplateIfParser(parser, tokens) {
+    this.error_class = Thistle.TemplateSyntaxError
+    this.template_parser = parser;
+    smartif.IfParser.call(this, arguments[1]);
+}
+extend(TemplateIfParser, smartif.IfParser, {
+    create_var: function(value) {
+        return new TemplateLiteral(this.template_parser.compile_filter(value), value);
+    },
+});
+
 //
 //
 //
@@ -239,6 +292,24 @@ var DefaultTags = {
         }
 
         return new ForNode(loopvars, sequence, is_reversed, nodelist_loop, nodelist_empty);
+    },
+
+    'if' : function(parser, token) {
+        var nodelist_true, nodelist_false;
+
+        var bits = token.split_contents().slice(1);
+        var p = new TemplateIfParser(parser, bits);
+        var val = p.parse();
+
+        nodelist_true = parser.parse(['else','endif']);
+        token = parser.next_token();
+        if (token.contents == 'else') {
+            nodelist_false = parser.parse(['endif']);
+            parser.delete_first_token();
+        } else {
+            nodelist_false = new node.NodeList();
+        }
+        return new IfNode(val, nodelist_true, nodelist_false);
     },
 };
 

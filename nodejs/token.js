@@ -56,6 +56,6 @@ Token.prototype = {
             split.push(bit)
         }
 
-        return split;
+        return split.filter(function (x) { return x.length != 0; });
     }
 };

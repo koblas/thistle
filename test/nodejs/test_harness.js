@@ -311,19 +311,13 @@ exports.testBasic = function(test) {
         'cycle06': ['{% cycle a %}', {}, Thistle.TemplateSyntaxError],
         'cycle07': ['{% cycle a,b,c as foo %}{% cycle bar %}', {}, Thistle.TemplateSyntaxError],
         'cycle08': ['{% cycle a,b,c as foo %}{% cycle foo %}{{ foo }}{{ foo }}{% cycle foo %}{{ foo }}', {}, 'abbbcc'],
-        /*
-            'cycle09': ("{% for i in test %}{% cycle a,b %}{{ i }},{% endfor %}", {'test': range(5)}, 'a0,b1,a2,b3,a4,'),
-        */
+        'cycle09': ["{% for i in test %}{% cycle a,b %}{{ i }},{% endfor %}", {'test': [0,1,2,3,4]}, 'a0,b1,a2,b3,a4,'],
         'cycle10': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}", {}, 'ab'],
         'cycle11': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}", {}, 'abc'],
         'cycle12': ["{% cycle 'a' 'b' 'c' as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, 'abca'],
-        /*
-            'cycle13': ("{% for i in test %}{% cycle 'a' 'b' %}{{ i }},{% endfor %}", {'test': range(5)}, 'a0,b1,a2,b3,a4,'),
-        */
+        'cycle13': ["{% for i in test %}{% cycle 'a' 'b' %}{{ i }},{% endfor %}", {'test': [0,1,2,3,4]}, 'a0,b1,a2,b3,a4,'],
         'cycle14': ["{% cycle one two as foo %}{% cycle foo %}", {'one': '1','two': '2'}, '12'],
-        /*
-            'cycle15': ("{% for i in test %}{% cycle aye bee %}{{ i }},{% endfor %}", {'test': range(5), 'aye': 'a', 'bee': 'b'}, 'a0,b1,a2,b3,a4,'),
-        */
+        'cycle15': ["{% for i in test %}{% cycle aye bee %}{{ i }},{% endfor %}", {'test': [0,1,2,3,4], 'aye': 'a', 'bee': 'b'}, 'a0,b1,a2,b3,a4,'],
         'cycle16': ["{% cycle one|lower two as foo %}{% cycle foo %}", {'one': 'A','two': '2'}, 'a2'],
         'cycle17': ["{% cycle 'a' 'b' 'c' as abc silent %}{% cycle abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", {}, ""],
         'cycle18': ["{% cycle 'a' 'b' 'c' as foo invalid_flag %}", {}, Thistle.TemplateSyntaxError],
@@ -331,8 +325,10 @@ exports.testBasic = function(test) {
         'cycle20': ["{% cycle one two as foo %} &amp; {% cycle foo %}", {'one' : 'A & B', 'two' : 'C & D'}, "A & B &amp; C & D"],
         /*
             'cycle21': ("{% filter force_escape %}{% cycle one two as foo %} & {% cycle foo %}{% endfilter %}", {'one' : 'A & B', 'two' : 'C & D'}, "A &amp; B &amp; C &amp; D"),
-            'cycle22': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "1234"),
-            'cycle23': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ abc }}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "a1b2c3a4"),
+        */
+        'cycle22': ["{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "1234"],
+        'cycle23': ["{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{{ abc }}{{ x }}{% endfor %}", {'values': [1,2,3,4]}, "a1b2c3a4"],
+        /*
             'included-cycle': ('{{ abc }}', {'abc': 'xxx'}, 'xxx'),
             'cycle24': ("{% for x in values %}{% cycle 'a' 'b' 'c' as abc silent %}{% include 'included-cycle' %}{% endfor %}", {'values': [1,2,3,4]}, "abca"),
         */
@@ -403,33 +399,36 @@ exports.testBasic = function(test) {
         'for-tag-empty02': ["{% for val in values %}{{ val }}{% empty %}values array empty{% endfor %}", {"values": []}, "values array empty"],
         'for-tag-empty03': ["{% for val in values %}{{ val }}{% empty %}values array not found{% endfor %}", {}, "values array not found"],
 
-        /*
-            ### IF TAG ################################################################
-            'if-tag01': ("{% if foo %}yes{% else %}no{% endif %}", {"foo": True}, "yes"),
-            'if-tag02': ("{% if foo %}yes{% else %}no{% endif %}", {"foo": False}, "no"),
-            'if-tag03': ("{% if foo %}yes{% else %}no{% endif %}", {}, "no"),
+        // ## IF TAG ################################################################
+        'if-tag01': ["{% if foo %}yes{% else %}no{% endif %}", {"foo": true}, "yes"],
 
+        'if-tag02': ["{% if foo %}yes{% else %}no{% endif %}", {"foo": false}, "no"],
+        'if-tag03': ["{% if foo %}yes{% else %}no{% endif %}", {}, "no"],
+
+        /*
             # Filters
             'if-tag-filter01': ("{% if foo|length == 5 %}yes{% else %}no{% endif %}", {'foo': 'abcde'}, "yes"),
             'if-tag-filter02': ("{% if foo|upper == 'ABC' %}yes{% else %}no{% endif %}", {}, "no"),
+        */
 
-            # Equality
-            'if-tag-eq01': ("{% if foo == bar %}yes{% else %}no{% endif %}", {}, "yes"),
-            'if-tag-eq02': ("{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1}, "no"),
-            'if-tag-eq03': ("{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1, 'bar': 1}, "yes"),
-            'if-tag-eq04': ("{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1, 'bar': 2}, "no"),
-            'if-tag-eq05': ("{% if foo == '' %}yes{% else %}no{% endif %}", {}, "no"),
+        // Equality
+        'if-tag-eq01': ["{% if foo == bar %}yes{% else %}no{% endif %}", {}, "yes"],
+        'if-tag-eq02': ["{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1}, "no"],
+        'if-tag-eq03': ["{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1, 'bar': 1}, "yes"],
+        'if-tag-eq04': ["{% if foo == bar %}yes{% else %}no{% endif %}", {'foo': 1, 'bar': 2}, "no"],
+        'if-tag-eq05': ["{% if foo == '' %}yes{% else %}no{% endif %}", {}, "no"],
 
-            # Comparison
-            'if-tag-gt-01': ("{% if 2 > 1 %}yes{% else %}no{% endif %}", {}, "yes"),
-            'if-tag-gt-02': ("{% if 1 > 1 %}yes{% else %}no{% endif %}", {}, "no"),
-            'if-tag-gte-01': ("{% if 1 >= 1 %}yes{% else %}no{% endif %}", {}, "yes"),
-            'if-tag-gte-02': ("{% if 1 >= 2 %}yes{% else %}no{% endif %}", {}, "no"),
-            'if-tag-lt-01': ("{% if 1 < 2 %}yes{% else %}no{% endif %}", {}, "yes"),
-            'if-tag-lt-02': ("{% if 1 < 1 %}yes{% else %}no{% endif %}", {}, "no"),
-            'if-tag-lte-01': ("{% if 1 <= 1 %}yes{% else %}no{% endif %}", {}, "yes"),
-            'if-tag-lte-02': ("{% if 2 <= 1 %}yes{% else %}no{% endif %}", {}, "no"),
+        // Comparison
+        'if-tag-gt-01': ["{% if 2 > 1 %}yes{% else %}no{% endif %}", {}, "yes"],
+        'if-tag-gt-02': ["{% if 1 > 1 %}yes{% else %}no{% endif %}", {}, "no"],
+        'if-tag-gte-01': ["{% if 1 >= 1 %}yes{% else %}no{% endif %}", {}, "yes"],
+        'if-tag-gte-02': ["{% if 1 >= 2 %}yes{% else %}no{% endif %}", {}, "no"],
+        'if-tag-lt-01': ["{% if 1 < 2 %}yes{% else %}no{% endif %}", {}, "yes"],
+        'if-tag-lt-02': ["{% if 1 < 1 %}yes{% else %}no{% endif %}", {}, "no"],
+        'if-tag-lte-01': ["{% if 1 <= 1 %}yes{% else %}no{% endif %}", {}, "yes"],
+        'if-tag-lte-02': ["{% if 2 <= 1 %}yes{% else %}no{% endif %}", {}, "no"],
 
+        /*
             # Contains
             'if-tag-in-01': ("{% if 1 in x %}yes{% else %}no{% endif %}", {'x':[1]}, "yes"),
             'if-tag-in-02': ("{% if 2 in x %}yes{% else %}no{% endif %}", {'x':[1]}, "no"),
@@ -1196,7 +1195,7 @@ exports.testBasic = function(test) {
     for (var tcase in tests) {
         // if (tcase != 'basic-syntax02') continue;
         // if (tcase != 'comment-tag01') continue;
-        // if (tcase != 'for-tag-unpack11') continue;
+        // if (tcase != 'if-tag-eq01') continue;
 
         var tdata = tests[tcase];
 

@@ -79,3 +79,9 @@ Thistle.SafeString = function(value) {
     this.is_safe = true;
 }
 Thistle.SafeString.prototype = new String;
+
+Thistle.mark_safe = function(s) { 
+    if (s instanceof Thistle.SafeString)
+        return s;
+    return new Thistle.SafeString(s); 
+}

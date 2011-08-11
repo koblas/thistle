@@ -69,7 +69,7 @@ extend(RenderContext, BaseContext, {
 //
 var Context = function(dict, autoescape, current_app, use_l10n) {
     this.dicts = [dict || {}];
-    this.autoescape = autoescape;
+    this.autoescape = autoescape == undefined ? true : autoescape;
     this.current_app = current_app;
     this.use_l10n = use_l10n;
     this.render_context = new RenderContext();

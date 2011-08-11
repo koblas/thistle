@@ -10,6 +10,30 @@ extend(CommentNode, node.Node, {
     toString : function() { return "<Comment Node>"; }
 });
 
+//
+//
+//
+var AutoEscapeControlNode = function(setting, nodelist) { 
+    this.setting = setting;
+    this.nodelist = nodelist;
+}
+
+extend(AutoEscapeControlNode, node.Node, {
+    render : function (context) { 
+        var old_setting = context.autoescape;
+        context.autoescape = this.setting;
+        output = this.nodelist.render(context);
+        context.autoescape = old_setting;
+        if (this.setting)
+            return new Thistle.mark_safe(output);
+        return output;
+    },
+    toString : function() { return "<AutoEscapeControl Node>"; }
+});
+
+//
+//
+//
 var CycleNode = function(cyclevars, variable_name, silent) { 
     this.cyclevars = cyclevars;
     this.variable_name = variable_name;
@@ -38,6 +62,26 @@ extend(CycleNode, node.Node, {
         return value;
     },
     toString : function() { return "<Cycle Node>"; }
+});
+
+//
+//
+//
+var FilterNode = function(filter_expr, nodelist) { 
+    this.filter_expr = filter_expr;
+    this.nodelist    = nodelist;
+}
+
+extend(FilterNode, node.Node, {
+    render : function (context) { 
+        var output = this.nodelist.render(context);
+        // Apply filters
+        context.update({'var':output});
+        filtered = this.filter_expr.resolve(context);
+        context.pop();
+        return filtered;
+    },
+    toString : function() { return "<Filter Node>"; }
 });
 
 //
@@ -310,6 +354,33 @@ var DefaultTags = {
             nodelist_false = new node.NodeList();
         }
         return new IfNode(val, nodelist_true, nodelist_false);
+    },
+
+    'autoescape' : function(parser, token) {
+        // Force autoescape behaviour for this block.
+        var args = token.split_contents()
+
+        if (args.length != 2) 
+            throw new Thistle.TemplateSyntaxError("'autoescape' tag requires exactly one argument.")
+
+        var arg = args[1];
+        if (arg != 'on' && arg != 'off')
+            throw new Thistle.TemplateSyntaxError("'autoescape' argument should be 'on' or 'off'")
+        
+        var nodelist = parser.parse(['endautoescape']);
+        parser.delete_first_token();
+        return new AutoEscapeControlNode((arg == 'on'), nodelist);
+    },
+
+    'filter' : function(parser, token) {
+        // Force autoescape behaviour for this block.
+        
+        var rest = token.split_contents().slice(1).join(' ');
+        var filter_expr = parser.compile_filter("var|" + rest);
+
+        nodelist = parser.parse(['endfilter']);
+        parser.delete_first_token();
+        return new FilterNode(filter_expr, nodelist);
     },
 };
 

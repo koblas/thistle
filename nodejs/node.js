@@ -109,9 +109,12 @@ extend(VariableNode, Node, {
         function in_context(value, context, is_safe) {
             if (value == undefined)
                 return "";
-            if (value instanceof Thistle.SafeString || value.is_safe || is_safe)
-                return value;
-            return new Thistle.SafeString(value.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
+            if (context.autoescape) {
+                if (value instanceof Thistle.SafeString || value.is_safe || is_safe)
+                    return value;
+                return new Thistle.SafeString(value.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
+            }
+            return value;
         };
 
         var output = this.filter_expression.resolve(context);

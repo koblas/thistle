@@ -357,13 +357,15 @@ exports.testBasic = function(test) {
 
             # Raise exception for custom tags used in child with {% load %} tag in parent, not in child
             'exception04': ("{% extends 'inheritance17' %}{% block first %}{% echo 400 %}5678{% endblock %}", {}, template.TemplateSyntaxError),
+        */
 
-            ### FILTER TAG ############################################################
-            'filter01': ('{% filter upper %}{% endfilter %}', {}, ''),
-            'filter02': ('{% filter upper %}django{% endfilter %}', {}, 'DJANGO'),
-            'filter03': ('{% filter upper|lower %}django{% endfilter %}', {}, 'django'),
-            'filter04': ('{% filter cut:remove %}djangospam{% endfilter %}', {'remove': 'spam'}, 'django'),
+        // ### FILTER TAG ############################################################
+        'filter01': ['{% filter upper %}{% endfilter %}', {}, ''],
+        'filter02': ['{% filter upper %}django{% endfilter %}', {}, 'DJANGO'],
+        'filter03': ['{% filter upper|lower %}django{% endfilter %}', {}, 'django'],
+        'filter04': ['{% filter cut:remove %}djangospam{% endfilter %}', {'remove': 'spam'}, 'django'],
 
+        /*
             ### FIRSTOF TAG ###########################################################
             'firstof01': ('{% firstof a b c %}', {'a':0,'b':0,'c':0}, ''),
             'firstof02': ('{% firstof a b c %}', {'a':1,'b':0,'c':0}, '1'),
@@ -1153,36 +1155,37 @@ exports.testBasic = function(test) {
             # Regression test for #11270.
             'cache17': ('{% load cache %}{% cache 10 long_cache_key poem %}Some Content{% endcache %}', {'poem': 'Oh freddled gruntbuggly/Thy micturations are to me/As plurdled gabbleblotchits/On a lurgid bee/That mordiously hath bitled out/Its earted jurtles/Into a rancid festering/Or else I shall rend thee in the gobberwarts with my blurglecruncheon/See if I dont.'}, 'Some Content'),
 
-
-            ### AUTOESCAPE TAG ##############################################
-            'autoescape-tag01': ("{% autoescape off %}hello{% endautoescape %}", {}, "hello"),
-            'autoescape-tag02': ("{% autoescape off %}{{ first }}{% endautoescape %}", {"first": "<b>hello</b>"}, "<b>hello</b>"),
-            'autoescape-tag03': ("{% autoescape on %}{{ first }}{% endautoescape %}", {"first": "<b>hello</b>"}, "&lt;b&gt;hello&lt;/b&gt;"),
-
-            # Autoescape disabling and enabling nest in a predictable way.
-            'autoescape-tag04': ("{% autoescape off %}{{ first }} {% autoescape  on%}{{ first }}{% endautoescape %}{% endautoescape %}", {"first": "<a>"}, "<a> &lt;a&gt;"),
-
-            'autoescape-tag05': ("{% autoescape on %}{{ first }}{% endautoescape %}", {"first": "<b>first</b>"}, "&lt;b&gt;first&lt;/b&gt;"),
-
-            # Strings (ASCII or unicode) already marked as "safe" are not
-            # auto-escaped
-            'autoescape-tag06': ("{{ first }}", {"first": mark_safe("<b>first</b>")}, "<b>first</b>"),
-            'autoescape-tag07': ("{% autoescape on %}{{ first }}{% endautoescape %}", {"first": mark_safe(u"<b>Apple</b>")}, u"<b>Apple</b>"),
-
-            # Literal string arguments to filters, if used in the result, are
-            # safe.
-            'autoescape-tag08': (r'{% autoescape on %}{{ var|default_if_none:" endquote\" hah" }}{% endautoescape %}', {"var": None}, ' endquote" hah'),
-
-            # Objects which return safe strings as their __unicode__ method
-            # won't get double-escaped.
-            'autoescape-tag09': (r'{{ unsafe }}', {'unsafe': filters.UnsafeClass()}, 'you &amp; me'),
-            'autoescape-tag10': (r'{{ safe }}', {'safe': filters.SafeClass()}, 'you &gt; me'),
-
-            # The "safe" and "escape" filters cannot work due to internal
-            # implementation details (fortunately, the (no)autoescape block
-            # tags can be used in those cases)
-            'autoescape-filtertag01': ("{{ first }}{% filter safe %}{{ first }} x<y{% endfilter %}", {"first": "<a>"}, template.TemplateSyntaxError),
         */
+
+        // ### AUTOESCAPE TAG ##############################################
+        'autoescape-tag01': ["{% autoescape off %}hello{% endautoescape %}", {}, "hello"],
+        'autoescape-tag02': ["{% autoescape off %}{{ first }}{% endautoescape %}", {"first": "<b>hello</b>"}, "<b>hello</b>"],
+        'autoescape-tag03': ["{% autoescape on %}{{ first }}{% endautoescape %}", {"first": "<b>hello</b>"}, "&lt;b&gt;hello&lt;/b&gt;"],
+
+        // Autoescape disabling and enabling nest in a predictable way.
+        'autoescape-tag04': ["{% autoescape off %}{{ first }} {% autoescape  on%}{{ first }}{% endautoescape %}{% endautoescape %}", {"first": "<a>"}, "<a> &lt;a&gt;"],
+
+        'autoescape-tag05': ["{% autoescape on %}{{ first }}{% endautoescape %}", {"first": "<b>first</b>"}, "&lt;b&gt;first&lt;/b&gt;"],
+
+        // Strings (ASCII or unicode) already marked as "safe" are not
+        // auto-escaped
+        'autoescape-tag06': ["{{ first }}", {"first": Thistle.mark_safe("<b>first</b>")}, "<b>first</b>"],
+        'autoescape-tag07': ["{% autoescape on %}{{ first }}{% endautoescape %}", {"first": Thistle.mark_safe("<b>Apple</b>")}, "<b>Apple</b>"],
+
+        // Literal string arguments to filters, if used in the result, are
+        // safe.
+        'autoescape-tag08': ['{% autoescape on %}{{ var|default_if_none:" endquote\\" hah" }}{% endautoescape %}', {"var": null}, ' endquote" hah'],
+
+        // Objects which return safe strings as their __unicode__ method
+        // won't get double-escaped.
+        
+        // TODO 'autoescape-tag09': ['{{ unsafe }}', {'unsafe': filters.UnsafeClass()}, 'you &amp; me'],
+        // TODO 'autoescape-tag10': ['{{ safe }}', {'safe': filters.SafeClass()}, 'you &gt; me'],
+
+        // The "safe" and "escape" filters cannot work due to internal
+        // implementation details (fortunately, the (no)autoescape block
+        // tags can be used in those cases)
+        'autoescape-filtertag01': ["{{ first }}{% filter safe %}{{ first }} x<y{% endfilter %}", {"first": "<a>"}, Thistle.TemplateSyntaxError],
 
         // ifqeual compares unescaped vales.
         'autoescape-ifequal01': ['{% if var == "this & that" %}yes{% endif %}', { "var": "this & that" }, "yes"],

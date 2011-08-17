@@ -150,10 +150,8 @@ exports.testBasic = function(test) {
         // Literal strings are permitted inside variables, mostly for i18n
         // purposes.
         'basic-syntax25': ['{{ "fred" }}', {}, "fred"],
-/*
-        'basic-syntax26': ['{{ "\"fred\"" }}', {}, "\"fred\""],
-        'basic-syntax27': ['{{ _("\"fred\"") }}', {}, "\"fred\""],
-*/
+        'basic-syntax26': ['{{ "\\"fred\\"" }}', {}, "\"fred\""],
+        'basic-syntax27': ['{{ _("\\"fred\\"") }}', {}, "\"fred\""],
 
         // regression test for ticket #12554
         // make sure a silent_variable_failure Exception is supressed
@@ -241,11 +239,11 @@ exports.testBasic = function(test) {
         // Default argument testing
         'filter-syntax12': ['{{ var|yesno:"yup,nup,mup" }} {{ var|yesno }}', {"var": true}, 'yup yes'],
 
-/*
-            # Fail silently for methods that raise an exception with a
-            # "silent_variable_failure" attribute
-            'filter-syntax13': (r'1{{ var.method3 }}2', {"var": SomeClass()}, ("12", "1INVALID2")),
+        // Fail silently for methods that raise an exception with a
+        // "silent_variable_failure" attribute
+        'filter-syntax13': ['1{{ var.method3 }}2', {"var": new SomeClass()}, ["12", "1INVALID2"]],
 
+/*
             # In methods that raise an exception without a
             # "silent_variable_attribute" set to True, the exception propagates
             'filter-syntax14': (r'1{{ var.method4 }}2', {"var": SomeClass()}, (SomeOtherException, SomeOtherException, template.TemplateSyntaxError)),
@@ -415,11 +413,9 @@ exports.testBasic = function(test) {
         'if-tag02': ["{% if foo %}yes{% else %}no{% endif %}", {"foo": false}, "no"],
         'if-tag03': ["{% if foo %}yes{% else %}no{% endif %}", {}, "no"],
 
-        /*
-            # Filters
-            'if-tag-filter01': ("{% if foo|length == 5 %}yes{% else %}no{% endif %}", {'foo': 'abcde'}, "yes"),
-            'if-tag-filter02': ("{% if foo|upper == 'ABC' %}yes{% else %}no{% endif %}", {}, "no"),
-        */
+        // Filters
+        'if-tag-filter01': ["{% if foo|length == 5 %}yes{% else %}no{% endif %}", {'foo': 'abcde'}, "yes"],
+        'if-tag-filter02': ["{% if foo|upper == 'ABC' %}yes{% else %}no{% endif %}", {}, "no"],
 
         // Equality
         'if-tag-eq01': ["{% if foo == bar %}yes{% else %}no{% endif %}", {}, "yes"],
@@ -530,13 +526,13 @@ exports.testBasic = function(test) {
         'if-tag-shortcircuit01': ['{% if x.is_true or x.is_bad %}yes{% else %}no{% endif %}', {'x': new TestObj()}, "yes"],
         'if-tag-shortcircuit02': ['{% if x.is_false and x.is_bad %}yes{% else %}no{% endif %}', {'x': new TestObj()}, "no"],
 
-    /*
-            # Non-existent args
-            'if-tag-badarg01':("{% if x|default_if_none:y %}yes{% endif %}", {}, ''),
-            'if-tag-badarg02':("{% if x|default_if_none:y %}yes{% endif %}", {'y': 0}, ''),
-            'if-tag-badarg03':("{% if x|default_if_none:y %}yes{% endif %}", {'y': 1}, 'yes'),
-            'if-tag-badarg04':("{% if x|default_if_none:y %}yes{% else %}no{% endif %}", {}, 'no'),
+        // Non-existent args
+        'if-tag-badarg01':["{% if x|default_if_none:y %}yes{% endif %}", {}, ''],
+        'if-tag-badarg02':["{% if x|default_if_none:y %}yes{% endif %}", {'y': 0}, ''],
+        'if-tag-badarg03':["{% if x|default_if_none:y %}yes{% endif %}", {'y': 1}, 'yes'],
+        'if-tag-badarg04':["{% if x|default_if_none:y %}yes{% else %}no{% endif %}", {}, 'no'],
 
+    /*
             # Additional, more precise parsing tests are in SmartIfTests
 
             ### IFCHANGED TAG #########################################################
@@ -622,29 +618,34 @@ exports.testBasic = function(test) {
             'ifnotequal02': ("{% ifnotequal a b %}yes{% endifnotequal %}", {"a": 1, "b": 1}, ""),
             'ifnotequal03': ("{% ifnotequal a b %}yes{% else %}no{% endifnotequal %}", {"a": 1, "b": 2}, "yes"),
             'ifnotequal04': ("{% ifnotequal a b %}yes{% else %}no{% endifnotequal %}", {"a": 1, "b": 1}, "no"),
+            */
 
-            ## INCLUDE TAG ###########################################################
-            'include01': ('{% include "basic-syntax01" %}', {}, "something cool"),
-            'include02': ('{% include "basic-syntax02" %}', {'headline': 'Included'}, "Included"),
-            'include03': ('{% include template_name %}', {'template_name': 'basic-syntax02', 'headline': 'Included'}, "Included"),
-            'include04': ('a{% include "nonexistent" %}b', {}, ("ab", "ab", template.TemplateDoesNotExist)),
-            'include 05': ('template with a space', {}, 'template with a space'),
-            'include06': ('{% include "include 05"%}', {}, 'template with a space'),
+        //# INCLUDE TAG ###########################################################
+        'include01': ['{% include "basic-syntax01" %}', {}, "something cool"],
 
-            # extra inline context
-            'include07': ('{% include "basic-syntax02" with headline="Inline" %}', {'headline': 'Included'}, 'Inline'),
-            'include08': ('{% include headline with headline="Dynamic" %}', {'headline': 'basic-syntax02'}, 'Dynamic'),
-            'include09': ('{{ first }}--{% include "basic-syntax03" with first=second|lower|upper second=first|upper %}--{{ second }}', {'first': 'Ul', 'second': 'lU'}, 'Ul--LU --- UL--lU'),
+        'include02': ['{% include "basic-syntax02" %}', {'headline': 'Included'}, "Included"],
+        'include03': ['{% include template_name %}', {'template_name': 'basic-syntax02', 'headline': 'Included'}, "Included"],
+        'include04': ['a{% include "nonexistent" %}b', {}, ("ab", "ab", Thistle.TemplateDoesNotExist)],
+        'include 05': ['template with a space', {}, 'template with a space'],
+        'include06': ['{% include "include 05"%}', {}, 'template with a space'],
 
-            # isolated context
-            'include10': ('{% include "basic-syntax03" only %}', {'first': '1'}, (' --- ', 'INVALID --- INVALID')),
-            'include11': ('{% include "basic-syntax03" only with second=2 %}', {'first': '1'}, (' --- 2', 'INVALID --- 2')),
-            'include12': ('{% include "basic-syntax03" with first=1 only %}', {'second': '2'}, ('1 --- ', '1 --- INVALID')),
+        // extra inline context
+        'include07': ['{% include "basic-syntax02" with headline="Inline" %}', {'headline': 'Included'}, 'Inline'],
 
-            # autoescape context
-            'include13': ('{% autoescape off %}{% include "basic-syntax03" %}{% endautoescape %}', {'first': '&'}, ('& --- ', '& --- INVALID')),
-            'include14': ('{% autoescape off %}{% include "basic-syntax03" with first=var1 only %}{% endautoescape %}', {'var1': '&'}, ('& --- ', '& --- INVALID')),
+        'include08': ['{% include headline with headline="Dynamic" %}', {'headline': 'basic-syntax02'}, 'Dynamic'],
+        'include09': ['{{ first }}--{% include "basic-syntax03" with first=second|lower|upper second=first|upper %}--{{ second }}', {'first': 'Ul', 'second': 'lU'}, 'Ul--LU --- UL--lU'],
 
+        // isolated context
+        'include10': ['{% include "basic-syntax03" only %}', {'first': '1'}, (' --- ', 'INVALID --- INVALID')],
+        'include11': ['{% include "basic-syntax03" only with second=2 %}', {'first': '1'}, (' --- 2', 'INVALID --- 2')],
+        'include12': ['{% include "basic-syntax03" with first=1 only %}', {'second': '2'}, ('1 --- ', '1 --- INVALID')],
+
+        // autoescape context
+        'include13': ['{% autoescape off %}{% include "basic-syntax03" %}{% endautoescape %}', {'first': '&'}, ['& --- ', '& --- INVALID']],
+        'include14': ['{% autoescape off %}{% include "basic-syntax03" with first=var1 only %}{% endautoescape %}', {'var1': '&'}, ['& --- ', '& --- INVALID']],
+        'include15': ['{% autoescape on %}{% include "basic-syntax03" with first=var1 only %}{% endautoescape %}', {'var1': '&'}, ['&amp; --- ', '&amp; --- INVALID']],
+
+            /*
             'include-error01': ('{% include "basic-syntax01" with %}', {}, template.TemplateSyntaxError),
             'include-error02': ('{% include "basic-syntax01" with "no key" %}', {}, template.TemplateSyntaxError),
             'include-error03': ('{% include "basic-syntax01" with dotted.arg="error" %}', {}, template.TemplateSyntaxError),
@@ -659,138 +660,144 @@ exports.testBasic = function(test) {
             'include-error08': ('{% include "include-fail2" %}', {}, ('', '', template.TemplateSyntaxError)),
             'include-error09': ('{% include failed_include %}', {'failed_include': 'include-fail1'}, ('', '', template.TemplateSyntaxError)),
             'include-error10': ('{% include failed_include %}', {'failed_include': 'include-fail2'}, ('', '', template.TemplateSyntaxError)),
+        */
 
 
-            ### NAMED ENDBLOCKS #######################################################
+        //### NAMED ENDBLOCKS #######################################################
 
-            # Basic test
-            'namedendblocks01': ("1{% block first %}_{% block second %}2{% endblock second %}_{% endblock first %}3", {}, '1_2_3'),
+        // Basic test
+        'namedendblocks01': ["1{% block first %}_{% block second %}2{% endblock second %}_{% endblock first %}3", {}, '1_2_3'],
 
-            # Unbalanced blocks
-            'namedendblocks02': ("1{% block first %}_{% block second %}2{% endblock first %}_{% endblock second %}3", {}, template.TemplateSyntaxError),
-            'namedendblocks03': ("1{% block first %}_{% block second %}2{% endblock %}_{% endblock second %}3", {}, template.TemplateSyntaxError),
-            'namedendblocks04': ("1{% block first %}_{% block second %}2{% endblock second %}_{% endblock third %}3", {}, template.TemplateSyntaxError),
-            'namedendblocks05': ("1{% block first %}_{% block second %}2{% endblock first %}", {}, template.TemplateSyntaxError),
+        // Unbalanced blocks
+        'namedendblocks02': ["1{% block first %}_{% block second %}2{% endblock first %}_{% endblock second %}3", {}, Thistle.TemplateSyntaxError],
+        'namedendblocks03': ["1{% block first %}_{% block second %}2{% endblock %}_{% endblock second %}3", {}, Thistle.TemplateSyntaxError],
+        'namedendblocks04': ["1{% block first %}_{% block second %}2{% endblock second %}_{% endblock third %}3", {}, Thistle.TemplateSyntaxError],
+        'namedendblocks05': ["1{% block first %}_{% block second %}2{% endblock first %}", {}, Thistle.TemplateSyntaxError],
 
-            # Mixed named and unnamed endblocks
-            'namedendblocks06': ("1{% block first %}_{% block second %}2{% endblock %}_{% endblock first %}3", {}, '1_2_3'),
-            'namedendblocks07': ("1{% block first %}_{% block second %}2{% endblock second %}_{% endblock %}3", {}, '1_2_3'),
+        // Mixed named and unnamed endblocks
+        'namedendblocks06': ["1{% block first %}_{% block second %}2{% endblock %}_{% endblock first %}3", {}, '1_2_3'],
+        'namedendblocks07': ["1{% block first %}_{% block second %}2{% endblock second %}_{% endblock %}3", {}, '1_2_3'],
 
-            ### INHERITANCE ###########################################################
+        // ### INHERITANCE ###########################################################
 
-            # Standard template with no inheritance
-            'inheritance01': ("1{% block first %}&{% endblock %}3{% block second %}_{% endblock %}", {}, '1&3_'),
+        // Standard template with no inheritance
+        'inheritance01': ["1{% block first %}&{% endblock %}3{% block second %}_{% endblock %}", {}, '1&3_'],
 
-            # Standard two-level inheritance
-            'inheritance02': ("{% extends 'inheritance01' %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {}, '1234'),
+        // Standard two-level inheritance
+        'inheritance02': ["{% extends 'inheritance01' %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {}, '1234'],
 
-            # Three-level with no redefinitions on third level
-            'inheritance03': ("{% extends 'inheritance02' %}", {}, '1234'),
+        // Three-level with no redefinitions on third level
+        'inheritance03': ["{% extends 'inheritance02' %}", {}, '1234'],
 
-            # Two-level with no redefinitions on second level
-            'inheritance04': ("{% extends 'inheritance01' %}", {}, '1&3_'),
+        // Two-level with no redefinitions on second level
+        'inheritance04': ["{% extends 'inheritance01' %}", {}, '1&3_'],
 
-            # Two-level with double quotes instead of single quotes
-            'inheritance05': ('{% extends "inheritance02" %}', {}, '1234'),
+        // Two-level with double quotes instead of single quotes
+        'inheritance05': ['{% extends "inheritance02" %}', {}, '1234'],
 
-            # Three-level with variable parent-template name
-            'inheritance06': ("{% extends foo %}", {'foo': 'inheritance02'}, '1234'),
+        // Three-level with variable parent-template name
+        'inheritance06': ["{% extends foo %}", {'foo': 'inheritance02'}, '1234'],
 
-            # Two-level with one block defined, one block not defined
-            'inheritance07': ("{% extends 'inheritance01' %}{% block second %}5{% endblock %}", {}, '1&35'),
+        // Two-level with one block defined, one block not defined
+        'inheritance07': ["{% extends 'inheritance01' %}{% block second %}5{% endblock %}", {}, '1&35'],
 
-            # Three-level with one block defined on this level, two blocks defined next level
-            'inheritance08': ("{% extends 'inheritance02' %}{% block second %}5{% endblock %}", {}, '1235'),
+        // Three-level with one block defined on this level, two blocks defined next level
+        'inheritance08': ["{% extends 'inheritance02' %}{% block second %}5{% endblock %}", {}, '1235'],
 
-            # Three-level with second and third levels blank
-            'inheritance09': ("{% extends 'inheritance04' %}", {}, '1&3_'),
+        // Three-level with second and third levels blank
+        'inheritance09': ["{% extends 'inheritance04' %}", {}, '1&3_'],
 
-            # Three-level with space NOT in a block -- should be ignored
-            'inheritance10': ("{% extends 'inheritance04' %}      ", {}, '1&3_'),
+        // Three-level with space NOT in a block -- should be ignored
+        'inheritance10': ["{% extends 'inheritance04' %}      ", {}, '1&3_'],
 
-            # Three-level with both blocks defined on this level, but none on second level
-            'inheritance11': ("{% extends 'inheritance04' %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {}, '1234'),
+        // Three-level with both blocks defined on this level, but none on second level
+        'inheritance11': ["{% extends 'inheritance04' %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {}, '1234'],
 
-            # Three-level with this level providing one and second level providing the other
-            'inheritance12': ("{% extends 'inheritance07' %}{% block first %}2{% endblock %}", {}, '1235'),
+        // Three-level with this level providing one and second level providing the other
+        'inheritance12': ["{% extends 'inheritance07' %}{% block first %}2{% endblock %}", {}, '1235'],
 
-            # Three-level with this level overriding second level
-            'inheritance13': ("{% extends 'inheritance02' %}{% block first %}a{% endblock %}{% block second %}b{% endblock %}", {}, '1a3b'),
+        // Three-level with this level overriding second level
+        'inheritance13': ["{% extends 'inheritance02' %}{% block first %}a{% endblock %}{% block second %}b{% endblock %}", {}, '1a3b'],
 
-            # A block defined only in a child template shouldn't be displayed
-            'inheritance14': ("{% extends 'inheritance01' %}{% block newblock %}NO DISPLAY{% endblock %}", {}, '1&3_'),
+        // A block defined only in a child template shouldn't be displayed
+        'inheritance14': ["{% extends 'inheritance01' %}{% block newblock %}NO DISPLAY{% endblock %}", {}, '1&3_'],
 
-            # A block within another block
-            'inheritance15': ("{% extends 'inheritance01' %}{% block first %}2{% block inner %}inner{% endblock %}{% endblock %}", {}, '12inner3_'),
+        // A block within another block
+        'inheritance15': ["{% extends 'inheritance01' %}{% block first %}2{% block inner %}inner{% endblock %}{% endblock %}", {}, '12inner3_'],
 
-            # A block within another block (level 2)
-            'inheritance16': ("{% extends 'inheritance15' %}{% block inner %}out{% endblock %}", {}, '12out3_'),
+        // A block within another block (level 2)
+        'inheritance16': ["{% extends 'inheritance15' %}{% block inner %}out{% endblock %}", {}, '12out3_'],
 
-            # {% load %} tag (parent -- setup for exception04)
-            'inheritance17': ("{% load testtags %}{% block first %}1234{% endblock %}", {}, '1234'),
+    /*
+        // {% load %} tag (parent -- setup for exception04)
+        'inheritance17': ["{% load testtags %}{% block first %}1234{% endblock %}", {}, '1234'],
 
-            # {% load %} tag (standard usage, without inheritance)
-            'inheritance18': ("{% load testtags %}{% echo this that theother %}5678", {}, 'this that theother5678'),
+        // {% load %} tag (standard usage, without inheritance)
+        'inheritance18': ["{% load testtags %}{% echo this that theother %}5678", {}, 'this that theother5678'],
 
-            # {% load %} tag (within a child template)
-            'inheritance19': ("{% extends 'inheritance01' %}{% block first %}{% load testtags %}{% echo 400 %}5678{% endblock %}", {}, '140056783_'),
+        // {% load %} tag (within a child template)
+        'inheritance19': ["{% extends 'inheritance01' %}{% block first %}{% load testtags %}{% echo 400 %}5678{% endblock %}", {}, '140056783_'],
+    */
 
-            # Two-level inheritance with {{ block.super }}
-            'inheritance20': ("{% extends 'inheritance01' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '1&a3_'),
+        // Two-level inheritance with {{ block.super }}
+        'inheritance20': ["{% extends 'inheritance01' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '1&a3_'],
 
-            # Three-level inheritance with {{ block.super }} from parent
-            'inheritance21': ("{% extends 'inheritance02' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '12a34'),
+        // Three-level inheritance with {{ block.super }} from parent
+        'inheritance21': ["{% extends 'inheritance02' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '12a34'],
 
-            # Three-level inheritance with {{ block.super }} from grandparent
-            'inheritance22': ("{% extends 'inheritance04' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '1&a3_'),
+        // Three-level inheritance with {{ block.super }} from grandparent
+        'inheritance22': ["{% extends 'inheritance04' %}{% block first %}{{ block.super }}a{% endblock %}", {}, '1&a3_'],
 
-            # Three-level inheritance with {{ block.super }} from parent and grandparent
-            'inheritance23': ("{% extends 'inheritance20' %}{% block first %}{{ block.super }}b{% endblock %}", {}, '1&ab3_'),
+        // Three-level inheritance with {{ block.super }} from parent and grandparent
+        'inheritance23': ["{% extends 'inheritance20' %}{% block first %}{{ block.super }}b{% endblock %}", {}, '1&ab3_'],
 
-            # Inheritance from local context without use of template loader
-            'inheritance24': ("{% extends context_template %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {'context_template': template.Template("1{% block first %}_{% endblock %}3{% block second %}_{% endblock %}")}, '1234'),
+        /*
+        // Inheritance from local context without use of template loader
+        'inheritance24': ["{% extends context_template %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {'context_template': template.Template("1{% block first %}_{% endblock %}3{% block second %}_{% endblock %}")}, '1234'],
 
-            # Inheritance from local context with variable parent template
-            'inheritance25': ("{% extends context_template.1 %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {'context_template': [template.Template("Wrong"), template.Template("1{% block first %}_{% endblock %}3{% block second %}_{% endblock %}")]}, '1234'),
+        // Inheritance from local context with variable parent template
+        'inheritance25': ["{% extends context_template.1 %}{% block first %}2{% endblock %}{% block second %}4{% endblock %}", {'context_template': [template.Template("Wrong"), template.Template("1{% block first %}_{% endblock %}3{% block second %}_{% endblock %}")]}, '1234'],
+        */
 
-            # Set up a base template to extend
-            'inheritance26': ("no tags", {}, 'no tags'),
+        // Set up a base template to extend
+        'inheritance26': ["no tags", {}, 'no tags'],
 
-            # Inheritance from a template that doesn't have any blocks
-            'inheritance27': ("{% extends 'inheritance26' %}", {}, 'no tags'),
+        // Inheritance from a template that doesn't have any blocks
+        'inheritance27': ["{% extends 'inheritance26' %}", {}, 'no tags'],
 
-            # Set up a base template with a space in it.
-            'inheritance 28': ("{% block first %}!{% endblock %}", {}, '!'),
+        // Set up a base template with a space in it.
+        'inheritance 28': ["{% block first %}!{% endblock %}", {}, '!'],
 
-            # Inheritance from a template with a space in its name should work.
-            'inheritance29': ("{% extends 'inheritance 28' %}", {}, '!'),
+        // Inheritance from a template with a space in its name should work.
+        'inheritance29': ["{% extends 'inheritance 28' %}", {}, '!'],
 
-            # Base template, putting block in a conditional {% if %} tag
-            'inheritance30': ("1{% if optional %}{% block opt %}2{% endblock %}{% endif %}3", {'optional': True}, '123'),
+        // Base template, putting block in a conditional {% if %} tag
+        'inheritance30': ["1{% if optional %}{% block opt %}2{% endblock %}{% endif %}3", {'optional': true}, '123'],
 
-            # Inherit from a template with block wrapped in an {% if %} tag (in parent), still gets overridden
-            'inheritance31': ("{% extends 'inheritance30' %}{% block opt %}two{% endblock %}", {'optional': True}, '1two3'),
-            'inheritance32': ("{% extends 'inheritance30' %}{% block opt %}two{% endblock %}", {}, '13'),
+        // Inherit from a template with block wrapped in an {% if %} tag (in parent), still gets overridden
+        'inheritance31': ["{% extends 'inheritance30' %}{% block opt %}two{% endblock %}", {'optional': true}, '1two3'],
+        'inheritance32': ["{% extends 'inheritance30' %}{% block opt %}two{% endblock %}", {}, '13'],
 
-            # Base template, putting block in a conditional {% ifequal %} tag
-            'inheritance33': ("1{% ifequal optional 1 %}{% block opt %}2{% endblock %}{% endifequal %}3", {'optional': 1}, '123'),
+        // Base template, putting block in a conditional {% if %} tag
+        'inheritance33': ["1{% if optional == 1 %}{% block opt %}2{% endblock %}{% endif %}3", {'optional': 1}, '123'],
 
-            # Inherit from a template with block wrapped in an {% ifequal %} tag (in parent), still gets overridden
-            'inheritance34': ("{% extends 'inheritance33' %}{% block opt %}two{% endblock %}", {'optional': 1}, '1two3'),
-            'inheritance35': ("{% extends 'inheritance33' %}{% block opt %}two{% endblock %}", {'optional': 2}, '13'),
+        // Inherit from a template with block wrapped in an {% ifequal %} tag (in parent), still gets overridden
+        'inheritance34': ["{% extends 'inheritance33' %}{% block opt %}two{% endblock %}", {'optional': 1}, '1two3'],
+        'inheritance35': ["{% extends 'inheritance33' %}{% block opt %}two{% endblock %}", {'optional': 2}, '13'],
 
-            # Base template, putting block in a {% for %} tag
-            'inheritance36': ("{% for n in numbers %}_{% block opt %}{{ n }}{% endblock %}{% endfor %}_", {'numbers': '123'}, '_1_2_3_'),
+        // Base template, putting block in a {% for %} tag
+        'inheritance36': ["{% for n in numbers %}_{% block opt %}{{ n }}{% endblock %}{% endfor %}_", {'numbers': '123'}, '_1_2_3_'],
 
-            # Inherit from a template with block wrapped in an {% for %} tag (in parent), still gets overridden
-            'inheritance37': ("{% extends 'inheritance36' %}{% block opt %}X{% endblock %}", {'numbers': '123'}, '_X_X_X_'),
-            'inheritance38': ("{% extends 'inheritance36' %}{% block opt %}X{% endblock %}", {}, '_'),
+        // Inherit from a template with block wrapped in an {% for %} tag (in parent), still gets overridden
+        'inheritance37': ["{% extends 'inheritance36' %}{% block opt %}X{% endblock %}", {'numbers': '123'}, '_X_X_X_'],
+        'inheritance38': ["{% extends 'inheritance36' %}{% block opt %}X{% endblock %}", {}, '_'],
 
-            # The super block will still be found.
-            'inheritance39': ("{% extends 'inheritance30' %}{% block opt %}new{{ block.super }}{% endblock %}", {'optional': True}, '1new23'),
-            'inheritance40': ("{% extends 'inheritance33' %}{% block opt %}new{{ block.super }}{% endblock %}", {'optional': 1}, '1new23'),
-            'inheritance41': ("{% extends 'inheritance36' %}{% block opt %}new{{ block.super }}{% endblock %}", {'numbers': '123'}, '_new1_new2_new3_'),
+        // The super block will still be found.
+        'inheritance39': ["{% extends 'inheritance30' %}{% block opt %}new{{ block.super }}{% endblock %}", {'optional': true}, '1new23'],
+        'inheritance40': ["{% extends 'inheritance33' %}{% block opt %}new{{ block.super }}{% endblock %}", {'optional': 1}, '1new23'],
+        'inheritance41': ["{% extends 'inheritance36' %}{% block opt %}new{{ block.super }}{% endblock %}", {'numbers': '123'}, '_new1_new2_new3_'],
 
+        /*
             ### LOADING TAG LIBRARIES #################################################
 
             # {% load %} tag, importing individual tags
@@ -1204,9 +1211,16 @@ exports.testBasic = function(test) {
         'autoescape-lookup01': ['{{ var.key }}', { "var": {"key": "this & that" }}, "this &amp; that"],
     };
 
+    Thistle.template_loaders = [
+        function(name, dirs) {
+            // return [tests[name][0], name];
+            return [new Thistle.Template(tests[name][0], null, name), name];
+        },
+    ];
+
     for (var tcase in tests) {
-        // if (tcase != 'basic-syntax02') continue;
-        // if (tcase != 'comment-tag01') continue;
+        // if (tcase != 'include10') continue;
+        // if (tcase != 'autoescape-tag08') continue;
         // if (tcase != 'if-tag-eq01') continue;
 
         var tdata = tests[tcase];
@@ -1216,13 +1230,13 @@ exports.testBasic = function(test) {
 
         try {
             var func = function() {
-                var thistle = new Thistle(tdata[0]);
-                return thistle.render(new Thistle.Context(tdata[1]));
+                var tmpl = new Thistle.Template(tdata[0]);
+                return tmpl.render(new Thistle.Context(tdata[1]));
             };
 
             //sys.puts(func());
 
-            if (tdata[2] == Thistle.ParseException || tdata[2] == Thistle.TemplateSyntaxError) {
+            if (tdata[2] == Thistle.ParseException || tdata[2] == Thistle.TemplateSyntaxError || tdata[2] == Thistle.TemplateDoesNotExist) {
                 test.throws(func, tdata[2], tcase);
             } else {
                 var val = func();

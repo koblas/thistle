@@ -38,6 +38,9 @@ var Filters = {
             return yes;
         return no;
     },
+    length : function(value, arg) {
+        return value.length;
+    },
     join : function(value, arg) {
         return value.join(arg);
     },

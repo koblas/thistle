@@ -11,10 +11,13 @@ VariableDoesNotExist.prototype.constructor = VariableDoesNotExist;
 VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
 function Parser(tokens) {
+    require('./default_tags');
+    require('./loader_tags');
+
     this.tokens = tokens;
 
-    this.tags    = require('./default_tags');
     this.filters = require('./filters');
+    this.tags    = Thistle.tags;
 };
 
 var _escapeRE = new RegExp('(\\' + ([ '/','.','*','+','?','|','(',')','[',']','{','}','\\' ].join('|\\')) + ')', 'g');
@@ -185,10 +188,11 @@ function Variable(val) {
         // sys.puts(e);
         if ((val.substr(0, 2) == '_(') && (val.charAt(val.length - 1) == ')')) {
             this.translate = true;
-            val = substr(2, val.length - 3);
+            val = val.substr(2, val.length - 3);
         }
         if ((val.charAt(0) == '"' || val.charAt(0) == "'") && val.charAt(0) == val.charAt(val.length-1)) {
-            this.literal = new Thistle.SafeString(val.substr(1, val.length - 2).replace('\\'+val.charAt(0), val.charAt(0)).replace('\\\\', '\\'));
+            var r1 = new RegExp('\\\\' + val.charAt(0), 'g');
+            this.literal = new Thistle.SafeString(val.substr(1, val.length - 2).replace(r1, val.charAt(0)).replace(/\\\\/g, '\\'));
         } else {
             if (val.indexOf(Thistle.VARIABLE_ATTRIBUTE_SEPARATOR + "_") != -1 || val == "_") 
                 throw new Thistle.ParseException("Variables and attributes may not begin with underscores: " + val);
@@ -210,6 +214,9 @@ extend(Variable, Object, {
             } catch (e) {
                 if (e instanceof VariableDoesNotExist) {
                     value = Thistle.TEMPLATE_STRING_IF_INVALID;
+                } else {
+                    // TODO - this is some random exception
+                    value = "";
                 }
             }
         } else {
@@ -230,6 +237,7 @@ extend(Variable, Object, {
         
         var current = context;
 
+        var previous = undefined;
         for (var idx in this.lookups) {
             var bit = this.lookups[idx];
             var bval;
@@ -247,13 +255,18 @@ extend(Variable, Object, {
             // sys.puts("_resolve_lookup: lookups: ["+ this.lookups + "] bit=" + bit + " typeof(bval) = " + typeof(bval) + " current:" + current);
                 
             var tval = typeof(bval);
+            // sys.puts("TVAL = " + tval);
             if (tval == 'undefined') {
                 current = current[parseInt(bval)]
             } else if (tval == 'function') {
-                current = bval();
+                if (previous != undefined)
+                    current = bval.apply(previous);
+                else
+                    current = bval();
             } else {
                 current = bval;
             }
+            previous = current;
             // sys.puts("   new value = " + current);
         }
 
@@ -279,7 +292,7 @@ function FilterExpression(token, parser) {
         // for (var k in match) sys.puts(k + ': ' + match[k]);
 
         if (upto != match.index)
-            throw new Thistle.ParseException("Could not parse some characters: "+token.substr(0,upto)+"|"+token.substr(upto, start)+"|" + token.substr(start));
+            throw new Thistle.ParseException("Could not parse some characters: "+token.substring(0,upto)+"|"+token.substring(upto, start)+"|" + token.substr(start));
         upto = match['index'] + match[0].length;
 
         if (val_obj == null) {

@@ -12,6 +12,7 @@ function mark_safe(s) {
 //
 var Node = function() {
     this.must_be_first = false;
+    this.child_nodelists = ['nodelist'];
 }
 
 extend(Node, Object, {
@@ -22,11 +23,11 @@ extend(Node, Object, {
         var nodes = [];
         if (this instanceof nodetype)
             nodes.push(this); 
-        var nlist = node.nodelist || [];
-        for (var idx in nlist) {
-            var chld = nlist[idx].get_nodes_by_type(nodetype);
-            for (var j in chld) {
-                nodes.push(chld[j]);
+        for (var nidx = 0; nidx < this.child_nodelists.length; nidx++) {
+            var nlist = this[this.child_nodelists[nidx]] || null;
+
+            if (nlist != null) {
+                (nlist.get_nodes_by_type(nodetype) || []).map(function (n) { nodes.push(n); });
             }
         }
 
@@ -39,6 +40,7 @@ extend(Node, Object, {
 //
 var NodeList = function() {
     this.contains_nontext = false;
+    Node.apply(this, []);
 }
 
 extend(NodeList, Array, {
@@ -50,7 +52,6 @@ extend(NodeList, Array, {
         var t = this;
         var bits = this.map(function(node) {
             if (node instanceof Node) {
-                // sys.puts("NodeList context = " + context);
                 return t.render_node(node, context);
             } else {
                 return node;
@@ -62,11 +63,8 @@ extend(NodeList, Array, {
 
     get_nodes_by_type : function(nodetype) {
         var nodes = []
-        for (var idx in this) {
-            var chld = this[idx].get_nodes_by_type(nodetype);
-            for (var j in chld) {
-                nodes.push(chld[j]);
-            }
+        for (var idx = 0; idx < this.length; idx++) {
+            (this[idx].get_nodes_by_type(nodetype) || []).map(function (n) { nodes.push(n); });
         }
         return nodes;
     },
@@ -85,6 +83,7 @@ extend(NodeList, Array, {
 //
 //
 function TextNode(s) {
+    Node.apply(this, []);
     this.s = s;
     this.must_be_first = false;
 }
@@ -98,6 +97,7 @@ extend(TextNode, Node, {
 });
 
 function VariableNode(filter_expression) {
+    Node.apply(this, []);
     this.filter_expression = filter_expression;
     this.must_be_first = false;
 }

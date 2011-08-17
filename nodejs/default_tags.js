@@ -1,11 +1,13 @@
 var sys = require('sys');
 var extend = require('./util');
 var Thistle = require('./thistle');
-var node   = require('./node');
+var nodes  = require('./node');
 
-var CommentNode = function() { }
+var CommentNode = function() { 
+    nodes.Node.apply(this, []); 
+}
 
-extend(CommentNode, node.Node, {
+extend(CommentNode, nodes.Node, {
     render : function (context) { return ''; },
     toString : function() { return "<Comment Node>"; }
 });
@@ -14,11 +16,12 @@ extend(CommentNode, node.Node, {
 //
 //
 var AutoEscapeControlNode = function(setting, nodelist) { 
+    nodes.Node.apply(this, []);
     this.setting = setting;
     this.nodelist = nodelist;
 }
 
-extend(AutoEscapeControlNode, node.Node, {
+extend(AutoEscapeControlNode, nodes.Node, {
     render : function (context) { 
         var old_setting = context.autoescape;
         context.autoescape = this.setting;
@@ -35,6 +38,7 @@ extend(AutoEscapeControlNode, node.Node, {
 //
 //
 var CycleNode = function(cyclevars, variable_name, silent) { 
+    nodes.Node.apply(this, []);
     this.cyclevars = cyclevars;
     this.variable_name = variable_name;
     this.silent = silent;
@@ -43,17 +47,17 @@ var CycleNode = function(cyclevars, variable_name, silent) {
 }
 CycleNode.index = 100;
 
-extend(CycleNode, node.Node, {
+extend(CycleNode, nodes.Node, {
     render : function (context) { 
-        if (typeof context.render_context[this.ident] == 'undefined')  {
+        if (typeof context.render_context.get(this.ident) == 'undefined')  {
             var self = this;
-            context.render_context[this.ident] = function() {
+            context.render_context.set(this.ident, function() {
                 if (self.pos == self.cyclevars.length)
                     self.pos = 0;
                 return self.cyclevars[self.pos++];
-            }
+            });
         }
-        cycle_iter = context.render_context[this.ident];
+        cycle_iter = context.render_context.get(this.ident);
         value = cycle_iter().resolve(context);
         if (this.variable_name)
             context.set(this.variable_name, value);
@@ -68,11 +72,12 @@ extend(CycleNode, node.Node, {
 //
 //
 var FilterNode = function(filter_expr, nodelist) { 
+    nodes.Node.apply(this, []);
     this.filter_expr = filter_expr;
     this.nodelist    = nodelist;
 }
 
-extend(FilterNode, node.Node, {
+extend(FilterNode, nodes.Node, {
     render : function (context) { 
         var output = this.nodelist.render(context);
         // Apply filters
@@ -88,6 +93,7 @@ extend(FilterNode, node.Node, {
 //
 //
 var ForNode = function(loopvars, sequence, is_reversed, nodelist_loop, nodelist_empty) {
+    nodes.Node.apply(this, []);
     this.child_nodelists = ['nodelist_loop', 'nodelist_empty']
 
     this.loopvars = loopvars;
@@ -95,17 +101,17 @@ var ForNode = function(loopvars, sequence, is_reversed, nodelist_loop, nodelist_
     this.is_reversed = is_reversed;
     this.nodelist_loop = nodelist_loop;
     if (nodelist_empty == null || nodelist_empty == undefined) 
-        this.nodelist_empty = new node.NodeList();
+        this.nodelist_empty = new nodes.NodeList();
     else
         this.nodelist_empty = nodelist_empty;
 }
 
-extend(ForNode, node.Node, {
+extend(ForNode, nodes.Node, {
     render : function(context) {
         var  parentloop;
 
         if (context.has_key('forloop')) {
-            parentloop = context['forloop'];
+            parentloop = context.get('forloop');
         } else {
             parentloop = {};
         }
@@ -126,7 +132,7 @@ extend(ForNode, node.Node, {
             return this.nodelist_empty.render(context);
         }
 
-        var nodelist = new node.NodeList();
+        var nodelist = new nodes.NodeList();
         if (this.is_reversed)
             values = values.reverse();
 
@@ -184,12 +190,13 @@ extend(ForNode, node.Node, {
 });
 
 var IfNode = function(val, nodelist_true, nodelist_false) {
+    nodes.Node.apply(this, []);
     this.nodelist_true = nodelist_true;
     this.nodelist_false = nodelist_false;
     this.val = val;
     this.child_nodelists = ['nodelist_true', 'nodelist_false'];
 }
-extend(IfNode, node.Node, {
+extend(IfNode, nodes.Node, {
     render: function(context) {
         try {
             val = this.val.eval(context);
@@ -239,7 +246,7 @@ extend(TemplateIfParser, smartif.IfParser, {
 //
 //
 //
-var DefaultTags = {
+Thistle.register_tags({
     comment : function(parser, token) {
         parser.skip_past('endcomment');
         return new CommentNode();
@@ -351,7 +358,7 @@ var DefaultTags = {
             nodelist_false = parser.parse(['endif']);
             parser.delete_first_token();
         } else {
-            nodelist_false = new node.NodeList();
+            nodelist_false = new nodes.NodeList();
         }
         return new IfNode(val, nodelist_true, nodelist_false);
     },
@@ -382,6 +389,4 @@ var DefaultTags = {
         parser.delete_first_token();
         return new FilterNode(filter_expr, nodelist);
     },
-};
-
-module.exports = DefaultTags;
+});

@@ -42,6 +42,7 @@ extend(BaseContext, Object, {
     set : function(key, value) {
         this.dicts[this.dicts.length-1][key] = value;
     },
+
 });
 
 //
@@ -53,14 +54,13 @@ var RenderContext = function(dict) {
 
 extend(RenderContext, BaseContext, {
     has_key : function(key) {
-        return self.dicts[self.dicts.length-1][key] != undefined;
+        return this.dicts[this.dicts.length-1][key] != undefined;
     },
 
-
     get : function(key, otherwise) {
-        if (self.dicts[self.dicts.length-1][key] != undefined)
+        if (this.dicts[this.dicts.length-1][key] == undefined)
             return otherwise;
-        return self.dicts[self.dicts.length-1][key];
+        return this.dicts[this.dicts.length-1][key];
     },
 });
 

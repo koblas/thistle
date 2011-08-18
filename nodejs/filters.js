@@ -1,6 +1,11 @@
 var sys = require('sys');
 
 var Filters = {
+    'default' :function (value, arg) {
+        if (value == null || value == undefined || value == false || value.length == 0) return arg;
+        return value;
+    },
+
     cut : function(value, arg) {
         return value.replace(arg, "");
     },

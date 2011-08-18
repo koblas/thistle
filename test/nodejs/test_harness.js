@@ -645,7 +645,7 @@ exports.testBasic = function(test) {
         'include14': ['{% autoescape off %}{% include "basic-syntax03" with first=var1 only %}{% endautoescape %}', {'var1': '&'}, ['& --- ', '& --- INVALID']],
         'include15': ['{% autoescape on %}{% include "basic-syntax03" with first=var1 only %}{% endautoescape %}', {'var1': '&'}, ['&amp; --- ', '&amp; --- INVALID']],
 
-            /*
+        /*
             'include-error01': ('{% include "basic-syntax01" with %}', {}, template.TemplateSyntaxError),
             'include-error02': ('{% include "basic-syntax01" with "no key" %}', {}, template.TemplateSyntaxError),
             'include-error03': ('{% include "basic-syntax01" with dotted.arg="error" %}', {}, template.TemplateSyntaxError),
@@ -904,19 +904,19 @@ exports.testBasic = function(test) {
 
             # blocktrans handling of variables which are not in the context.
             'i18n34': ('{% load i18n %}{% blocktrans %}{{ missing }}{% endblocktrans %}', {}, u''),
-
-            ### HANDLING OF TEMPLATE_STRING_IF_INVALID ###################################
-
-            'invalidstr01': ('{{ var|default:"Foo" }}', {}, ('Foo','INVALID')),
-            'invalidstr02': ('{{ var|default_if_none:"Foo" }}', {}, ('','INVALID')),
-            'invalidstr03': ('{% for v in var %}({{ v }}){% endfor %}', {}, ''),
-            'invalidstr04': ('{% if var %}Yes{% else %}No{% endif %}', {}, 'No'),
-            'invalidstr04': ('{% if var|default:"Foo" %}Yes{% else %}No{% endif %}', {}, 'Yes'),
-            'invalidstr05': ('{{ var }}', {}, ('', ('INVALID %s', 'var'))),
-            'invalidstr06': ('{{ var.prop }}', {'var': {}}, ('', ('INVALID %s', 'var.prop'))),
-
-            ### MULTILINE #############################################################
             */
+
+            // ### HANDLING OF TEMPLATE_STRING_IF_INVALID ###################################
+
+            'invalidstr01': ['{{ var|default:"Foo" }}', {}, ['Foo','INVALID']],
+            'invalidstr02': ['{{ var|default_if_none:"Foo" }}', {}, ['','INVALID']],
+            'invalidstr03': ['{% for v in var %}({{ v }}){% endfor %}', {}, ''],
+            'invalidstr04': ['{% if var %}Yes{% else %}No{% endif %}', {}, 'No'],
+            'invalidstr04': ['{% if var|default:"Foo" %}Yes{% else %}No{% endif %}', {}, 'Yes'],
+            'invalidstr05': ['{{ var }}', {}, ['', 'INVALID', ['INVALID %s', 'var']]],
+            'invalidstr06': ['{{ var.prop }}', {'var': {}}, ['', 'INVALID', ['INVALID %s', 'var.prop']]],
+
+            // ### MULTILINE #############################################################
 
             'multiline01': ["Hello,\n"
                            +"boys.\n"

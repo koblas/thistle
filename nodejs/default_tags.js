@@ -2,6 +2,9 @@ var sys = require('sys');
 var extend = require('./util');
 var Thistle = require('./thistle');
 var nodes  = require('./node');
+var library = require('./library');
+
+register = new library.Library();
 
 var CommentNode = function() { 
     nodes.Node.apply(this, []); 
@@ -246,7 +249,7 @@ extend(TemplateIfParser, smartif.IfParser, {
 //
 //
 //
-Thistle.register_tags({
+register.tags({
     comment : function(parser, token) {
         parser.skip_past('endcomment');
         return new CommentNode();
@@ -390,3 +393,7 @@ Thistle.register_tags({
         return new FilterNode(filter_expr, nodelist);
     },
 });
+
+module.exports = {
+    register : register
+}

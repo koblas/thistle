@@ -1,4 +1,7 @@
 var sys = require('sys');
+var library = require('./library');
+
+register = new library.Library();
 
 var Filters = {
     'default' :function (value, arg) {
@@ -10,8 +13,6 @@ var Filters = {
         return value.replace(arg, "");
     },
     join : function(value, arg) {
-        sys.puts(value);
-        sys.puts(arg);
         return value.join(arg);
     },
     lower : function(value) {
@@ -66,4 +67,8 @@ var Filters = {
 Filters.join.is_safe = true;
 Filters.cut.is_safe = true;
 
-module.exports = Filters;
+register.filters(Filters);
+
+module.exports = {
+    register : register
+}

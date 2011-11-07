@@ -3,8 +3,11 @@ var extend  = require('./util');
 var Thistle = require('./thistle');
 var nodes   = require('./node');
 var token_kwargs = require('./token_kwargs');
+var library = require('./library');
 
 var BLOCK_CONTEXT_KEY = 'block-context';
+
+register = new library.Library();
 
 function make_origin(display_name, loader, name, dirs) {
     return {
@@ -243,7 +246,7 @@ extend(ExtendsNode, nodes.Node, {
 //
 //
 //
-Thistle.register_tags({
+register.tags({
     'include' : function(parser, token) {
         var bits = token.split_contents();
         if (bits.length < 2) 
@@ -319,3 +322,7 @@ Thistle.register_tags({
         return new ExtendsNode(nodelist, parent_name, parent_name_expr);
     },
 });
+
+module.exports = {
+    register : register,
+};

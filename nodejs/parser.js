@@ -10,14 +10,29 @@ VariableDoesNotExist.prototype = new Error;
 VariableDoesNotExist.prototype.constructor = VariableDoesNotExist;
 VariableDoesNotExist.prototype.name = "Thistle.VariableDoesNotExist";
 
+var builtins = [];
+
+function add_to_builtins(file) {
+    var mod = require(file);
+
+    if (mod.register)
+        builtins.push(mod.register)
+}
+
+add_to_builtins('./default_tags');
+add_to_builtins('./loader_tags');
+add_to_builtins('./default_filters');
+
+//
+//
+//
 function Parser(tokens) {
-    require('./default_tags');
-    require('./loader_tags');
+    this.tokens  = tokens;
+    this.tags    = {};
+    this.filters = {};
 
-    this.tokens = tokens;
-
-    this.filters = require('./filters');
-    this.tags    = Thistle.tags;
+    for (var idx in builtins) 
+        this.add_library(builtins[idx]);
 };
 
 var _escapeRE = new RegExp('(\\' + ([ '/','.','*','+','?','|','(',')','[',']','{','}','\\' ].join('|\\')) + ')', 'g');
@@ -163,6 +178,13 @@ Parser.prototype = {
         if (f == undefined) 
             throw new Thistle.ParseException("Invalid filter: '"+filter_name+'"');
         return f;
+    },
+
+    add_library : function(lib) {
+        for (var k in lib._tags) 
+            this.tags[k] = lib._tags[k];
+        for (var k in lib._filters) 
+            this.filters[k] = lib._filters[k];
     }
 };
 

@@ -1,7 +1,7 @@
 import re
 from functools import wraps
 
-from thistle import TemplateSyntaxError, TemplateDoesNotExist, Template
+from thistle import TemplateSyntaxError, TemplateDoesNotExist, Template, template_loaders
 from .library import Library
 from .safestring import SafeData, force_unicode, conditional_escape, mark_safe
 from .node import Node, TextNode
@@ -22,10 +22,10 @@ def make_origin(display_name, loader, name, dirs):
     }
 
 def find_template(name, dirs=None):
-    for loader in Template.template_loaders:
+    for loader in template_loaders:
         try:
-            vals = loader(name, dirs)
-            return [vals[0], make_origin(vals[1], loader, name, dirs)]
+            tmpl, display_name = loader(name, dirs)
+            return [tmpl, make_origin(display_name, loader, name, dirs)]
         except Exception as e:
             pass
     raise TemplateDoesNotExist(name);
@@ -35,9 +35,10 @@ def get_template(template_name):
 
     template = vals[0];
     origin   = vals[1];
-#    if (typeof template.render == 'unknown')
-#        template = get_template_from_string(template, origin, template_name);
-    return template;
+
+    if not hasattr(template, 'render'):
+        template = get_template_from_string(template, origin, template_name);
+    return template
 
 def get_template_from_string(source, origin, name):
     return Template(source, origin, name);

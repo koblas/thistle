@@ -35,9 +35,10 @@ class Thistle(object):
     def render(self, view):
         pass
 
+#
+#
+#
 class Template(object):
-    template_loaders = []
-
     def __init__(self, template_string, origin=None, name='UNKNOWN'):
         from .lexer import Lexer
         from .parser import Parser
@@ -60,5 +61,36 @@ class Template(object):
     def _render(self, context):
         return self.nodelist.render(context)
 
+
     def __str__(self):
         return '<Template %s [%s]>' % (self.name, ', '.join(['%r' % n for n in self.nodelist[0:5]]))
+
+def add_directory_path(dirname):
+    template_directories.append(dirname)
+
+def filesystem_loader(name, dirs):
+    import os
+    tdata = None
+    try:
+        for dname in template_directories:
+            fullpath = os.path.join(dname, name)
+            if os.path.exists(fullpath):
+                with open(fullpath) as fd:
+                    tdata = fd.read()
+                    return (tdata, name)
+    except Exception as e:
+        print e
+
+def render_to_string(name, dictionary={}, context_instance=None):
+    from .loader_tags import get_template
+    from .context import Context
+    
+    tmpl = get_template(name)
+    if not context_instance:
+        context_instance = Context()
+    if dictionary:
+        context_instance.push(dictionary)
+    return tmpl.render(context_instance)
+
+template_directories = []
+template_loaders = [filesystem_loader]

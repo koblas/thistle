@@ -492,7 +492,8 @@
 
     "include02": ["{% include \"basic-syntax02\" %}", {"headline": "Included"}, "Included"],
     "include03": ["{% include template_name %}", {"template_name": "basic-syntax02", "headline": "Included"}, "Included"],
-    "include04": ["a{% include \"nonexistent\" %}b", {}, ["ab", "ab", "Thistle.TemplateDoesNotExist"]],
+//j    "include04": ["a{% include \"nonexistent\" %}b", {}, ["ab", "ab", "Thistle.TemplateDoesNotExist"]],
+    "include04": ["a{% include \"nonexistent\" %}b", {}, "Thistle.TemplateDoesNotExist"],
     "include 05": ["template with a space", {}, "template with a space"],
     "include06": ["{% include \"include 05\"%}", {}, "template with a space"],
 

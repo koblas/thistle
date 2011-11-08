@@ -17,7 +17,7 @@ def add_to_builtins(module):
         builtins.append(mod.register)
 
 add_to_builtins('thistle.default_tags');
-#add_to_builtins('thistle.loader_tags');
+add_to_builtins('thistle.loader_tags');
 add_to_builtins('thistle.default_filters');
 
 class Parser(object):
@@ -336,11 +336,6 @@ class FilterExpression(object):
                     obj = None
                 else:
                     if Thistle.TEMPLATE_STRING_IF_INVALID:
-                        global invalid_var_format_string
-                        if invalid_var_format_string is None:
-                            invalid_var_format_string = '%s' in Thistle.TEMPLATE_STRING_IF_INVALID
-                        if invalid_var_format_string:
-                            return Thistle.TEMPLATE_STRING_IF_INVALID % self.var
                         return Thistle.TEMPLATE_STRING_IF_INVALID
                     else:
                         obj = Thistle.TEMPLATE_STRING_IF_INVALID

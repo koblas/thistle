@@ -157,6 +157,12 @@ exports.testBasic = function(test) {
                 test.throws(func, Thistle.TemplateSyntaxError, tcase);
             } else if (expect == "Thistle.TemplateDoesNotExist") {
                 test.throws(func, Thistle.TemplateDoesNotExist, tcase);
+            } else if (expect instanceof Array) {
+                for (var i = 0; i < expect.length; i++) {
+                    if (expect[i] == "Thistle.TemplateDoesNotExist") {
+                        // TODO - 
+                    }
+                }
             } else {
                 sys.puts('EXCEPTION = ' + e);
                 if (e != undefined) {

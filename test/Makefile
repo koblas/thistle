@@ -1,4 +1,4 @@
-all: py 
+all: py node
 
 py:
 	PYTHONPATH=../py python py/test_harness.py

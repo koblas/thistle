@@ -36,6 +36,8 @@ class Thistle(object):
         pass
 
 class Template(object):
+    template_loaders = []
+
     def __init__(self, template_string, origin=None, name='UNKNOWN'):
         from .lexer import Lexer
         from .parser import Parser

@@ -88,6 +88,13 @@ class Templates(unittest.TestCase):
     def test_templates(self):
         template_tests = self.get_template_tests()
 
+        thistle.Thistle.TEMPLATE_STRING_IF_INVALID = "INVALID"
+
+        def loader(name, dirs):
+            return (thistle.Template(template_tests[name][0], None, name), name)
+
+        thistle.Template.template_loaders.append(loader)
+
         failures = []
 
         for name, vals in template_tests.items():

@@ -108,6 +108,13 @@ def length(value):
         return ''
 length.is_safe = True
 
+def safe(value):
+    """
+    Marks the value as a string that should not be auto-escaped.
+    """
+    return mark_safe(value)
+safe.is_safe = True
+
 ###################
 # LOGIC           #
 ###################
@@ -165,4 +172,5 @@ register.filter(lower)
 register.filter(upper)
 register.filter(default_if_none)
 register.filter(length)
+register.filter(safe)
 register.filter(truncatewords)

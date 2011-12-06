@@ -61,7 +61,6 @@ class Template(object):
     def _render(self, context):
         return self.nodelist.render(context)
 
-
     def __str__(self):
         return '<Template %s [%s]>' % (self.name, ', '.join(['%r' % n for n in self.nodelist[0:5]]))
 
@@ -89,8 +88,41 @@ def render_to_string(name, dictionary={}, context_instance=None):
     if not context_instance:
         context_instance = Context()
     if dictionary:
-        context_instance.push(dictionary)
+        context_instance.update(dictionary)
     return tmpl.render(context_instance)
 
 template_directories = []
 template_loaders = [filesystem_loader]
+
+#
+#
+#
+class TornadoWrapper(object):
+    def __init__(self, tmpl):
+        self.tmpl = tmpl
+
+    def generate(self, **kwargs):
+        from .context import Context
+
+        context_instance = kwargs.get('context_instance', None)
+        if not context_instance:
+            context_instance = Context()
+        context_instance.update(kwargs)
+        return self.tmpl.render(context_instance)
+    
+class TornadoLoader(object):
+    cache = {}
+
+    def load(self, name):
+        from .loader_tags import get_template
+
+        if name in self.cache:
+            tmpl = self.cache[name]
+        else:
+            tmpl = get_template(name)
+            self.cache[name] = tmpl
+        return TornadoWrapper(tmpl)
+
+    def reset(self):
+        """Uncache the template"""
+        self.cache = {}

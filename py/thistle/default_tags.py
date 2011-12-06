@@ -168,6 +168,15 @@ class IfNode(Node):
         else:
             return self.nodelist_false.render(context)
 
+class SpacelessNode(Node):
+    def __init__(self, nodelist):
+        self.nodelist = nodelist
+
+    def render(self, context):
+        """Returns the given HTML with spaces between tags removed."""
+        value = self.nodelist.render(context).strip()
+        return re.sub(r'>\s+<', '><', value)
+
 class TemplateLiteral(Literal):
     def __init__(self, value, text):
         self.value = value
@@ -489,3 +498,33 @@ def do_for(parser, token):
     else:
         nodelist_empty = None
     return ForNode(loopvars, sequence, is_reversed, nodelist_loop, nodelist_empty)
+
+@register.tag
+def spaceless(parser, token):
+    """
+    Removes whitespace between HTML tags, including tab and newline characters.
+
+    Example usage::
+
+        {% spaceless %}
+            <p>
+                <a href="foo/">Foo</a>
+            </p>
+        {% endspaceless %}
+
+    This example would return this HTML::
+
+        <p><a href="foo/">Foo</a></p>
+
+    Only space between *tags* is normalized -- not space between tags and text.
+    In this example, the space around ``Hello`` won't be stripped::
+
+        {% spaceless %}
+            <strong>
+                Hello
+            </strong>
+        {% endspaceless %}
+    """
+    nodelist = parser.parse(('endspaceless',))
+    parser.delete_first_token()
+    return SpacelessNode(nodelist)

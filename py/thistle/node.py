@@ -72,9 +72,8 @@ def _render_value_in_context(value, context):
     value = localize(value, use_l10n=context.use_l10n)
     value = force_unicode(value)
     if (context.autoescape and not isinstance(value, SafeData)) or isinstance(value, EscapeData):
-        return SafeString(force_unicode(value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;'));
-    else:
-        return value
+        return mark_safe(value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;'))
+    return value
 
 class VariableNode(Node):
     def __init__(self, filter_expression):

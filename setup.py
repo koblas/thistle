@@ -2,9 +2,11 @@
 
 from distutils.core import setup
 
+version = "0.1"
+
 setup(
     name='Thistle',
-    version='0.1',
+    version=version,
     description='Common Platform Template System',
     author='David Koblas',
     author_email='david@koblas.com',

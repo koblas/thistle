@@ -163,6 +163,46 @@ def yesno(value, arg=None):
     return no
 yesno.is_safe = False
 
+def slice_(value, arg):
+    """
+    Returns a slice of the list.
+
+    Uses the same syntax as Python's list slicing; see
+    http://diveintopython.org/native_data_types/lists.html#odbchelper.list.slice
+    for an introduction.
+    """
+    try:
+        bits = []
+        for x in arg.split(u':'):
+            if len(x) == 0:
+                bits.append(None)
+            else:
+                bits.append(int(x))
+        return value[slice(*bits)]
+
+    except (ValueError, TypeError):
+        return value # Fail silently.
+slice_.is_safe = True
+
+def timesince(value, arg=None):
+    """Formats a date as the time since that date (i.e. "4 days, 6 hours")."""
+    from django.utils.timesince import timesince
+    if not value:
+        return u''
+    try:
+        if arg:
+            return timesince(value, arg)
+        return timesince(value)
+    except (ValueError, TypeError):
+        return u''
+timesince.is_safe = False
+
+def strftime(value, arg=None):
+    try:
+        return value.strftime(arg)
+    except :
+        return u''
+
 #
 register.filter(default)
 register.filter(yesno)
@@ -174,3 +214,6 @@ register.filter(default_if_none)
 register.filter(length)
 register.filter(safe)
 register.filter(truncatewords)
+register.filter('slice', slice_)
+register.filter(timesince)
+register.filter(strftime)
